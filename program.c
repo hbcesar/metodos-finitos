@@ -69,9 +69,28 @@ int main (int argc, char* argv[])
 	printf("  - Tempo total              : %.6f sec\n\n", time);
 	
 
+	/*********************** TODO *******************************
+	*
+	*	Função para solucionar o sistema linear
+	*
+	*	Entrada: 
+	*		Matriz CSR: MAT *A
+	*		Matriz Precondicionamento: MAT *L e MAT *U
+	*		Vetor de Termos Independentes: 
+	* 		Tolerância: double tol
+	*		Número máximo de vetores na base de Krylov:
+	*		Número máximo de Iteraçoes:
+	*		(caso o vetor de termos independentes não esteja permutado,  é necessário enviar também o vetor de permutações)
+	*	
+	*	
+	*	Saída: Solução do Sistema Linear e o Número total de iterações realizadas pelo GMRES.
+	* 	
+	*************************************************************/
+
 	free(p);
 	MATRIX_clean(A);
 	MATRIX_clean(L);
 	MATRIX_clean(U);
+
 	return 0;
 }
