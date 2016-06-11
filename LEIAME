@@ -1,0 +1,19 @@
+Detalhes sobre a permutação: Operação (P*A*P')(P*x) = (P*b)
+
+Após a aplicar o reordenamento, temos como saída um vetor de permutação p e a 
+função MATRIX_PERMUTATION realiza a troca de linhas e colunas de A de acordo com P*A*P'.
+
+Portanto, precisamos também aplicar a permutação (P*b) no vetor b. Para isso,
+basta fazer:
+
+double* b_permutado = calloc(n,sizeof(double));		
+for (i = 0; i < n; ++i) 
+	b_permutado[i] = b[p[i]];
+
+Então, sua chamada do método iterativo:
+x = GMRES (A,b_permutado,...)
+
+E é necessário aplicar a permutação no vetor solução fazendo:
+x_permutado[p[i]] = x[i];
+
+x_permutado é seu vetor solução final.
