@@ -22,7 +22,7 @@ Vector BuildVector(unsigned int s) {
     if (0 < s) {
 
         /* alloc the vector */
-        vector.v = (double*) malloc(s*sizeof(double));
+        vector.v = (double*) calloc(s, sizeof(double));
         if (NULL == vector.v) {
 
             printf("\nMemmory Error! Could not allocate the vector\n");
@@ -122,10 +122,10 @@ void CopyVectorAToB(Vector *a, Vector *b) {
 double InnerProduct(Vector a, Vector b) {
 
     /* helpers */
-    unsigned int i;
+    unsigned int i, size = a.size;
     double result = 0.0f;
 
-    if (a.size != b.size) {
+    if (size != b.size) {
 
         printf("Error! The vectors does not have the same sizes!\n");
         exit(-22);
@@ -133,7 +133,7 @@ double InnerProduct(Vector a, Vector b) {
     } else {
 
         /* multiply each element */
-        for (i = 0; i < a.size; i++) {
+        for (i = 0; i < size; i++) {
 
             /* update the result */
             result += a.v[i]*b.v[i];
@@ -186,7 +186,7 @@ double EuclideanNorm(Vector vector) {
 
     for (i = 0; i < v_size; i++) {
 
-        norm += v[i];
+        norm += v[i]*v[i];
 
     }
 
@@ -222,6 +222,23 @@ double InfinityNorm(Vector vector) {
     }
 
     return norm;
+
+}
+
+/* normalization */
+inline void ScaleVector(Vector vector, double value) {
+
+    /* get the vector size */
+    unsigned int v_size = vector.size, i;
+
+    /* syntatic sugvectorr */
+    double *v = vector.v;
+
+    for (i = 0; i < v_size; i++) {
+
+        v[i] *= value;
+
+    }
 
 }
 
