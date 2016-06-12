@@ -1,18 +1,20 @@
 CC         = gcc
 CFLAGS     = -c -lm -Wall
-GCFLAGS    = -lm -Wall 
+GCFLAGS    = -lm -Wall
 SOURCES    = ./CommonFiles/matrix.c        \
 	     ./CommonFiles/linked_list.c   \
 	     ./CommonFiles/graph.c         \
 	     ./CommonFiles/ilup.c          \
 	     ./CommonFiles/rcm.c           \
+	     ./GMRES/gmres.c               \
+	     ./CommonFiles/Vector/Vector.c \
 	     program.c
 OBJECTS    = $(SOURCES:.c=.o)
-EXECUTABLE = program 
+EXECUTABLE = program
 
 all: $(SOURCES) $(EXECUTABLE)
- 
-$(EXECUTABLE): $(OBJECTS) 
+
+$(EXECUTABLE): $(OBJECTS)
 	$(CC) $(OBJECTS) $(GCFLAGS) -o $@
 
 clean:
