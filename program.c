@@ -49,7 +49,7 @@ int main (int argc, char* argv[])
     printf("\nThe b vector:");
     ShowVector(b);
     Solution sol;
-    sol = gmres_solver(A, b, 0.1, 30, 2000);
+    sol = gmres_solver(A, b, 0.001, 5, 2000);
     DeleteVector(b);
     printf("\nGMRES Iterations: %d\n", sol.iterations);
     ShowVector(sol.x);

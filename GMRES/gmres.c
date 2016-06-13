@@ -53,6 +53,7 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
     unsigned int n = b.size;
     double rho, r, tmp;
     double *hv, *prev_v, *next_v;
+    double hji, hj1i;
 
     kmax1 = kmax + 1;
 
@@ -96,8 +97,6 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
         u[i] = BuildVector(n);
         h[i] = BuildVector(kmax1);
     }
-
-    /* build the residual vector */
 
     /* get the residual direct access */
     double *rv = u[0].v;
@@ -174,9 +173,10 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
                 /* get the prev vector direct access */
                 prev_v = u[j].v;
 
-                tmp = InnerProduct(u[iplus1], u[j]);
+                tmp = InnerProduct(u[j], u[iplus1]);
                 hv[j] = tmp;
 
+                /* update the current direction vector */
                 for (k = 0; k < n; k++)
                 {
                     next_v[k] -= tmp * prev_v[k];
@@ -189,24 +189,31 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
             /* update the next h vector */
             hv[iplus1] = tmp;
 
-            if ((tmp + 1.0e-03*hv[iplus1]) == tmp)
+            if (0 == tmp)
             {
-                for (j = 0; j < iplus1; ++j)
-                {
-                    tmp = InnerProduct(u[iplus1], u[iplus1]);
-                    hv[j] += tmp;
-                    for (k = 0; k < n; ++k)
-                    {
-                        next_v[k] -= tmp*prev_v[k];
-                    }
-                }
+                kmax = i;
+                i += 1;
+                break;
             }
 
-            if (0.0 != hv[iplus1])
-            {
-                /* normalize the direction vector */
-                ScaleVector(u[iplus1], 1.0/hv[iplus1]);
-            }
+            /* normalize the direction vector */
+            ScaleVector(u[iplus1], 1.0/tmp);
+
+//             if ((tmp + 1.0e-03*hv[iplus1]) == tmp)
+//             {
+//                 for (j = 0; j < iplus1; ++j)
+//                 {
+//                     tmp = InnerProduct(u[iplus1], u[i]);
+//                     hv[j] += tmp;
+//                     for (k = 0; k < n; ++k)
+//                     {
+//                         next_v[k] -= tmp*prev_v[k];
+//                     }
+//                 }
+//
+//                 /* update the h vector */
+//                 hv[iplus1] = EuclideanNorm(u[iplus1]);
+//             }
 
             /* GRAM-SCHMIDT end */
 
@@ -215,8 +222,10 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
             {
                 for (j = 0, jplus1 = 1; j < i; ++j, ++jplus1)
                 {
-                    hv[j] = c[j]*hv[j] + s[j]*hv[jplus1];
-                    hv[jplus1] = -s[j]*hv[j] + c[j]*hv[jplus1];
+                    hji = c[j]*hv[j] + s[j]*hv[jplus1];
+                    hj1i = -s[j]*hv[j] + c[j]*hv[jplus1];
+                    hv[j] = hji;
+                    hv[jplus1] = hj1i;
                 }
 
             }
@@ -227,7 +236,7 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
             /* update the cosine value */
             c[i] = hv[i]/r;
 
-            /* update the sin value */
+            /* update the sine value */
             s[i] = hv[iplus1]/r;
 
             /* update the current position inside the h vector */
@@ -251,34 +260,42 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
         iter_gmres = i - 1;
 
         /* update the y value */
-        y[iter_gmres] = h[iter_gmres].v[iter_gmres];
+        y[iter_gmres] = e[iter_gmres]/h[iter_gmres].v[iter_gmres];
 
         for (i = iter_gmres - 1; 0 <= i; --i)
         {
             /* update the h vector direct access */
             hv = h[i].v;
 
-            for (j = i + 1; j < iter_gmres + 1; ++j)
+            for (j = iter_gmres; j > i; --j)
             {
-                e[i] -= hv[j]*y[j];
+                e[i] -= h[j].v[i] * y[j];
             }
             y[i] = e[i]/hv[i];
 
         }
 
         iter_gmres += 1;
-        for (i = 0; i < n; ++i)
+        for (j = 0; j < n; ++j)
         {
-            for (j = 0; j < iter_gmres; ++j)
+            for (k = 0; k < iter_gmres; ++k)
             {
                 /* update the solution vector */
-                x0[i] += u[j].v[i] * y[j];
+                /* it's so tricky! */
+                x0[j] += y[k] * u[k].v[j];
             }
+
         }
+
+        if (rho < epson)
+        {
+            break;
+        }
+
     }
 
     /* update the iteration counter*/
-    sol.iterations = iter;
+    sol.iterations = iter + 1;
 
     /* remove the auxiliary arrays */
     free(c);
@@ -287,7 +304,7 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
     free(e);
 
     /* remove the h and u vectors */
-    for (i = 0; i < kmax1; ++i)
+    for (i = 0; i < kmax; ++i)
     {
         DeleteVector(u[i]);
         DeleteVector(h[i]);
