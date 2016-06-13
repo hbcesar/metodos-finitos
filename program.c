@@ -40,7 +40,6 @@ int main (int argc, char* argv[])
     DeleteVector(result);
     /*---------------------------------------------*/
     /*---------------GMRES SOLVER------------------*/
-    // Vector b = BuildVectorWithRandomValues(A->m);
     Vector b = BuildVector(A->m);
     int i;
     for (i = 0; i < b.size; i++) {

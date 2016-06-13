@@ -15,33 +15,32 @@ void matrix_vector_multiply_CSR(MAT* A, Vector b, Vector result)
 {
     if (A->m != b.size || b.size != result.size)
     {
-        printf("\nWrong dimensions! The A matrix collumns and the vectors b and result sizes must all be the same!\n");
+        printf("\nWrong dimensions! The A matrix collumns and the vectors B and X sizes must all be the same!\n");
         exit(-30);
     }
 
-    int i, j, l_begin, l_end, col;
-    int n = A->n;
+    int i, j, l_begin, l_end;
+    int n = b.size;
 
     /* syntactic sugar */
     double *AA = A->AA;
     int *IA = A->IA;
     int *JA = A->JA;
     double *r = result.v;
-    double *v = b.v;
+    double *bv = b.v;
 
+    /* show the matrix */
     for(i = 0; i < n; i++)
     {
-        r[i] = 0;
+        r[i] = 0.0;
 
         l_begin = IA[i];
         l_end = IA[i+1];
 
         for (j = l_begin; j < l_end; j++)
         {
-            col = JA[j];
-            r[i] += AA[col] * v[col];
+            r[i] += AA[j] * bv[JA[j]];
         }
-
     }
 
 }
@@ -288,7 +287,7 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
     free(e);
 
     /* remove the h and u vectors */
-    for (i = 0; i < kmax; ++i)
+    for (i = 0; i < kmax1; ++i)
     {
         DeleteVector(u[i]);
         DeleteVector(h[i]);
