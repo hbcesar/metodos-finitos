@@ -124,12 +124,6 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
         /* update the rho value */
         rho = e[i] = tmp;
 
-        /* reset the error */
-        for (j = 1; j < n; ++j)
-        {
-            e[j] = 0.0;
-        }
-
         /* the internal loop, for restart purpose */
         while (rho > epson && i < kmax)
         {
