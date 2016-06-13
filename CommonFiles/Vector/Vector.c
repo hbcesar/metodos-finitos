@@ -70,7 +70,7 @@ Vector BuildVectorWithValue(unsigned int s, double value) {
 }
 
 /* build a new vector with random values */
-Vector BuildVectorWithRandomValues(unsigned int s) {
+Vector BuildVectorWithRandomValues(unsigned int s, unsigned int mod) {
 
     /* build a vector */
     Vector vector;
@@ -92,7 +92,7 @@ Vector BuildVectorWithRandomValues(unsigned int s) {
 
     for (i = 0; i < s; i++) {
 
-        vector.v[i] = rand() % 10;
+        vector.v[i] = rand() % mod;
 
     }
 

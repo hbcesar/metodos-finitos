@@ -127,6 +127,16 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
             /* let's normalize the residual vector */
             ScaleVector(u[0], 1.0/rho);
 
+        } else {
+
+            /* we got a trivial solution */
+            i += +1;
+            for (i = 0; i < n; i++)
+            {
+                x0[i] = 0.0;
+            }
+
+            break;
         }
 
         /* update the rho value */

@@ -25,7 +25,7 @@ Vector BuildVector(unsigned int s);
 Vector BuildVectorWithValue(unsigned int s, double value);
 
 /* build a new vector with random values */
-Vector BuildVectorWithRandomValues(unsigned int s);
+Vector BuildVectorWithRandomValues(unsigned int s, unsigned int mod);
 
 /* delete a given vector */
 void DeleteVector(Vector vector);

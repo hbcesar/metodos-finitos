@@ -40,19 +40,19 @@ int main (int argc, char* argv[])
     DeleteVector(result);
     /*---------------------------------------------*/
     /*---------------GMRES SOLVER------------------*/
-    Vector b = BuildVector(A->m);
-    int i;
-    for (i = 0; i < b.size; i++) {
-        b.v[i] = i + 3;
-    }
+    printf("\nGMRES solver\n");
+    Vector b = BuildVectorWithRandomValues(A->m, 10);
     printf("\nThe b vector:");
     ShowVector(b);
+
     Solution sol;
     sol = gmres_solver(A, b, 0.001, 5, 2000);
-    DeleteVector(b);
-    printf("\nGMRES Iterations: %d\n", sol.iterations);
+    printf("\nThe x vector:");
     ShowVector(sol.x);
+    printf("\nGMRES Iterations: %d\n", sol.iterations);
+
     delete_solution(sol);
+    DeleteVector(b);
 
     /*---------------------------------------------*/
     /*---COMO USAR O ALGORITMO ILUP----------------*/
