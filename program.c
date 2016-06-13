@@ -30,7 +30,8 @@ int main (int argc, char* argv[])
     /*---------------------------------------------*/
     /*----MULTIPLICANDO A MATRIZ POR UM VETOR------*/
     Vector x = BuildVectorWithValue(A->m, 1);
-    Vector result = matrix_vector_multiply_CSR(A, x);
+    Vector result = BuildVector(A->m);
+    matrix_vector_multiply_CSR(A, x, result);
     printf("\nThe x vector: ");
     ShowVector(x);
     printf("\nResult: ");

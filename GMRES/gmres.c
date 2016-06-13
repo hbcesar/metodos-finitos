@@ -40,16 +40,19 @@ void matrix_vector_multiply_CSR(MAT* A, Vector b, Vector result)
 
 }
 /* the GMRES solver */
-Solution gmres_solver(Mat *A, Vector b, double tol, double kmax, double lmax) {
+Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned int lmax) {
 
     /* the common helpers */
-    unsigned int i, iplus1, j, jplus1, k, iter;
+    unsigned int i, iplus1, j, jplus1, k, kmax1, iter, iter_gmres;
     unsigned int n = b.size;
     double rho, r, tmp;
+    double *hv, *uv, *prev_v, *next_v;
+
+    kmax1 = kmax + 1;
 
     /* syntatic sugar */
     /* access the vector b */
-    double bv = b.v;
+    double *bv = b.v;
 
     /* get the epson value */
     double epson = tol * EuclideanNorm(b);
@@ -57,38 +60,38 @@ Solution gmres_solver(Mat *A, Vector b, double tol, double kmax, double lmax) {
     /* the solution */
     Solution sol;
 
-    /* build the temporary x vector /*
+    /* build the temporary x vector */
     /* this vector will be constantly */
     /* updated until we find the solution */
     sol.x = BuildVector(n);
     /* the direct access  */
-    double x0 = sol.x.v;
-
-    k = kmax + 1;
+    double *x0 = sol.x.v;
 
     /* allocate the c and s array */
-    double *c = (double*) malloc(k*sizeof(double));
-    double *s = (double*) malloc(k*sizeof(double));
+    double *c = (double*) malloc(kmax*sizeof(double));
+    double *s = (double*) malloc(kmax*sizeof(double));
 
-    /* allocate the error array */
-    double *e = (double*) malloc(k*sizeof(double));
+    /* allocate the y array */
+    double *y = (double*) malloc(kmax1*sizeof(double));
+
+    /* allocate the error array, starts with zero value */
+    double *e = (double*) calloc(kmax1, sizeof(double));
 
     /* build the u vector array */
     Vector u[kmax];
+
     /* build the h vector array */
     Vector h[kmax];
+
     /* allocate each u and h vector inside the array'*/
-    for (i = 0; i < k; ++i)
+    for (i = 0; i < kmax; ++i)
     {
         u[i] = BuildVector(n);
-        h[i] = BuildVector(k);
+        h[i] = BuildVector(kmax1);
     }
 
     /* get the residual direct access */
     double *rv = u[0].v;
-
-    /* temp vector */
-    Vector tmp = BuildVector(n);
 
     /* the GMRES main outside loop */
     /* we are going to break this loop */
@@ -121,6 +124,12 @@ Solution gmres_solver(Mat *A, Vector b, double tol, double kmax, double lmax) {
         /* update the rho value */
         rho = e[i] = tmp;
 
+        /* reset the error */
+        for (j = 1; j < n; ++j)
+        {
+            e[j] = 0.0;
+        }
+
         /* the internal loop, for restart purpose */
         while (rho > epson && i < kmax)
         {
@@ -131,32 +140,37 @@ Solution gmres_solver(Mat *A, Vector b, double tol, double kmax, double lmax) {
             matrix_vector_multiply_CSR(A, u[i], u[iplus1]);
 
             /* Gram-Schmidt process */
-            /* start */
+            /* GRAM-SCHMIDT begin */
             /* update the h vector */
-            double *hv = h[i].v;
+            hv = h[i].v;
 
             /* get the next vector direct access */
-            double *next_v = u[iplus1].v;
+            next_v = u[iplus1].v;
 
             for (j = 0; j <= i; j++)
             {
                 /* get the prev vector direct access */
-                double *prev_v = u[j].v;
+                prev_v = u[j].v;
 
                 tmp = InnerProduct(u[iplus1], u[j]);
                 hv[j] = tmp;
 
                 for (k = 0; k < n; k++)
                 {
-                    next_v[k] -= tmp*prev_v[k];
+                    next_v[k] -= tmp * prev_v[k];
                 }
             }
 
+            /* get the euclidean norm of the last direction vector */
             tmp = EuclideanNorm(u[iplus1]);
+
+            /* update the next h vector */
             hv[i+1] = tmp;
+
+            /* normalize the direction vector */
             ScaleVector(u[iplus1], 1.0/tmp);
 
-            /* end */
+            /* GRAM-SCHMIDT end */
 
             /* QR algorithm */
             for (j = 0, jplus1 = 1; j < i; ++j, ++jplus1)
@@ -165,6 +179,7 @@ Solution gmres_solver(Mat *A, Vector b, double tol, double kmax, double lmax) {
                 hv[jplus1] = -s[j]*hv[j] + c[j]*hv[jplus1];
             }
 
+            /* update the residual value */
             r = sqrt(hv[i]*hv[i] + hv[iplus1]*hv[iplus1]);
 
             c[i] = hv[i]/r;
@@ -177,7 +192,7 @@ Solution gmres_solver(Mat *A, Vector b, double tol, double kmax, double lmax) {
 
             e[iplus1] = -s[i]*e[i];
 
-            e[i] = c[i]*e[i];
+            e[i] *= c[i];
 
             rho = fabs(e[iplus1]);
 
@@ -185,10 +200,51 @@ Solution gmres_solver(Mat *A, Vector b, double tol, double kmax, double lmax) {
             i += 1;
         }
 
-        i -= 1;
-        for (j = i - 1; j >= 0; --j)
+        /* get the iteration counter */
+        iter_gmres = i - 1;
+
+        /* update the y value */
+        y[iter_gmres] = e[iter_gmres]/h[iter_gmres].v[iter_gmres];
+
+        for (i = iter_gmres - 1; 0 <= i; --i)
         {
-            // y[j] = e[j] -
+            /* update the h vector direct access */
+            hv = h[i].v;
+
+            for (j = i + 1; j < iter_gmres + 1; ++j)
+            {
+                e[i] -= hv[j] * y[j];
+            }
+
+            y[i] = e[i]/hv[i];
+        }
+
+        for (i = 0; i < n; ++i)
+        {
+            /* get the current u vector */
+            uv = u[i].v;
+
+            for (j = 0; j < kmax + 1; ++j)
+            {
+                /* update the solution vector */
+                x0[i] += uv[j] * y[j];
+            }
+        }
+
+        /* reset the error */
+        for (i = 0; i < kmax1; ++i)
+        {
+            e[i] = 0.0;
+        }
+
+        /* reset the h matrix */
+        for (i = 0; i < kmax; ++i)
+        {
+            hv = h[i].v;
+            for (j = 0; j < kmax1; j++)
+            {
+                hv[j] = 0.0;
+            }
         }
 
     }
@@ -200,121 +256,7 @@ Solution gmres_solver(Mat *A, Vector b, double tol, double kmax, double lmax) {
 }
 
 /* the GMRES solver */
-Solution gmres(Mat *A, Mat *L, Mat *U, Vector b, double tol, unsigned int kmax, unsigned int nmax)
+Solution gmres(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kmax, unsigned int lmax)
 {
-    int v_size = b.size;
-
-    Solution s;
-    s.iterations = 0;
-    s.x = BuildVector(v_size);
-
-    /* syntactic sugar */
-    double n = A->n;
-
-    /* the temporary vector, this vector is constantly updated */
-    /* until we reach the desired solution */
-    double x0 = (double*) calloc(n, sizeof(double));
-
-    /*  */
-    double y = (double*) calloc(kmax, sizeof(double));
-
-    /* the residual vector */
-    Vector r = BuildVector(n);
-
-    Mat V;
-    V=eye(n,kmax);
-    H=zeros(kmax+1,kmax);
-    nitertotal = 0;
-
-
-    while( l <= lmax )
-    {
-
-        r=b-A*x0;
-        beta=norm(r);
-        V(:,1)=r/beta;
-
-        ebar = eye(kmax+1,1)*beta;
-        epson = tol * norm(b);
-
-        niter = 0;
-
-        for i=1:kmax
-            niter++;
-            w=A*V(:,i);
-            for j=1:i
-                H(j,i)=V(:,j)'*w;
-                w=w-H(j,i)*V(:,j);
-            end
-            H(i+1,i)=norm(w);
-            if H(i+1,i)==0
-                kmax=i;
-                break
-            end
-            V(:,i+1)=w/H(i+1,i);
-
-        % ...Aplica as rotações de Givens
-        % ...Algoritmo QR
-
-            if( i > 1)
-                for j=1:i-1
-                    hji = c(j)*H(j,i) + s(j)*H(j+1,i);
-                    hj1i = -s(j)*H(j,i) + c(j)*H(j+1,i);
-                    H(j,i) = hji;
-                    H(j+1,i) = hj1i;
-                end
-            end
-
-            r = H(i,i)*H(i,i) + H(i+1,i)*H(i+1,i);
-            r = sqrt(r);
-
-            c(i) = H(i,i)/r;
-            s(i) = H(i+1,i)/r;
-            H(i,i) = r;
-            H(i+1,i) = 0.0;
-
-            ebar(i+1) = -s(i)*ebar(i);
-            ebar(i) = c(i)*ebar(i);
-
-            nitertotal = nitertotal+1;
-            if( abs(ebar(i+1)) < epson )
-                break;
-            end
-        end % Fim da iteração GMRES
-
-        residuo = abs(ebar(niter+1));
-
-% ... Resolve o sistema liner Hy=e
-
-        y(niter) = ebar(niter)/H(niter,niter);
-        i = niter-1;
-        while(i >= 1)
-            j = niter;
-
-            while( j > i )
-
-                ebar(i) -= H(i,j)*y(j);
-                j--;
-
-            end;
-
-            y(i) = ebar(i)/H(i,i);
-            i--;
-
-        end
-
-        x = x0+V(:,1:niter)*y(1:niter);
-
-        if( residuo < epson )
-            break;
-        else
-            x0 = x;
-        end
-        l++;
-
-    }
-
-    printf("(GMRES) Ciclo %d: iteracao = %d\n",l,niter);
-
-    return s;
+    return gmres_solver(A, b, tol, kmax, lmax);
 }

@@ -12,15 +12,15 @@ typedef struct Solution {
     /* how many iterations */
     unsigned int iterations;
 
-};
+} Solution;
 
 /* multiply a given CSR matrix to any Vector */
 void matrix_vector_multiply_CSR(MAT* A, Vector b, Vector result);
 
 /* the GMRES solver */
-Solution gmres_solver(Mat *A, Vector b, double tol, double kmax, double lmax);
+Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned int lmax);
 
 /* the GMRES main function */
-Solution gmres(Mat *A, Mat *L, Mat *U, Vector b, double tol, unsigned int kmax, unsigned int nmax);
+Solution gmres(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kmax, unsigned int lmax);
 
 #endif
