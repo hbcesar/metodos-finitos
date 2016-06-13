@@ -97,6 +97,8 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
         h[i] = BuildVector(kmax1);
     }
 
+    /* build the residual vector */
+
     /* get the residual direct access */
     double *rv = u[0].v;
 
@@ -120,17 +122,17 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
         /* end */
 
         /* we need the euclidean norm (i.e the scalar error value) */
-        tmp = EuclideanNorm(u[0]);
+        rho = EuclideanNorm(u[0]);
 
-        if (tmp != 0.0) {
+        if (rho != 0.0) {
 
             /* let's normalize the residual vector */
-            ScaleVector(u[0], 1.0/tmp);
+            ScaleVector(u[0], 1.0/rho);
 
         }
 
         /* update the rho value */
-        e[0] = rho = tmp;
+        e[0] = rho;
         /* reset the error */
         for (j = 1; j < kmax1; ++j)
         {
@@ -138,7 +140,7 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
         }
 
         /* reset the h matrix */
-        for (j = 0; j < kmax; ++j)
+        for (j = 0; j < kmax1; ++j)
         {
             hv = h[j].v;
             for (k = 0; k < kmax1; ++k)
