@@ -4,6 +4,12 @@
 
 #include "../CommonFiles/heads.h"
 
+/* destroy a solution struct */
+void delete_solution(Solution s)
+{
+    DeleteVector(s.x);
+}
+
 //Multiplicacao Matriz x Vetor em CSR, onde MAT* a é a matriz CSR e Vector b é o vetor.
 void matrix_vector_multiply_CSR(MAT* A, Vector b, Vector result)
 {
@@ -43,10 +49,10 @@ void matrix_vector_multiply_CSR(MAT* A, Vector b, Vector result)
 Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned int lmax) {
 
     /* the common helpers */
-    unsigned int i, iplus1, j, jplus1, k, kmax1, iter, iter_gmres;
+    int i, iplus1, j, jplus1, k, kmax1, iter, iter_gmres;
     unsigned int n = b.size;
     double rho, r, tmp;
-    double *hv, *uv, *prev_v, *next_v;
+    double *hv, *prev_v, *next_v;
 
     kmax1 = kmax + 1;
 
@@ -64,27 +70,28 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
     /* this vector will be constantly */
     /* updated until we find the solution */
     sol.x = BuildVector(n);
+
     /* the direct access  */
     double *x0 = sol.x.v;
 
     /* allocate the c and s array */
-    double *c = (double*) malloc(kmax*sizeof(double));
-    double *s = (double*) malloc(kmax*sizeof(double));
+    double *c = (double*) calloc(kmax, sizeof(double));
+    double *s = (double*) calloc(kmax, sizeof(double));
 
     /* allocate the y array */
-    double *y = (double*) malloc(kmax1*sizeof(double));
+    double *y = (double*) calloc(kmax1, sizeof(double));
 
     /* allocate the error array, starts with zero value */
-    double *e = (double*) calloc(kmax1, sizeof(double));
+    double *e = (double*) malloc(kmax1*sizeof(double));
 
     /* build the u vector array */
-    Vector u[kmax];
+    Vector u[kmax1];
 
     /* build the h vector array */
-    Vector h[kmax];
+    Vector h[kmax1];
 
     /* allocate each u and h vector inside the array'*/
-    for (i = 0; i < kmax; ++i)
+    for (i = 0; i < kmax1; ++i)
     {
         u[i] = BuildVector(n);
         h[i] = BuildVector(kmax1);
@@ -98,13 +105,10 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
     /* if we get a tiny little error */
     for (iter = 0; iter < lmax; ++iter)
     {
-        /* reset the i counter */
-        i = 0;
-
         /* first let's find the residual/error vector */
         /* start */
 
-        matrix_vector_multiply_CSR(A, sol.x, u[i]);
+        matrix_vector_multiply_CSR(A, sol.x, u[0]);
 
         /* let's remember: r = b - Ax */
         /* but we got now just the Ax, so ... */
@@ -116,13 +120,35 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
         /* end */
 
         /* we need the euclidean norm (i.e the scalar error value) */
-        tmp = EuclideanNorm(u[i]);
+        tmp = EuclideanNorm(u[0]);
 
-        /* let's normalize the residual vector */
-        ScaleVector(u[i], 1.0/tmp);
+        if (tmp != 0.0) {
+
+            /* let's normalize the residual vector */
+            ScaleVector(u[0], 1.0/tmp);
+
+        }
 
         /* update the rho value */
-        rho = e[i] = tmp;
+        e[0] = rho = tmp;
+        /* reset the error */
+        for (j = 1; j < kmax1; ++j)
+        {
+            e[j] = 0.0;
+        }
+
+        /* reset the h matrix */
+        for (j = 0; j < kmax; ++j)
+        {
+            hv = h[j].v;
+            for (k = 0; k < kmax1; ++k)
+            {
+                hv[k] = 0.0;
+            }
+        }
+
+        /* reset the i counter */
+        i = 0;
 
         /* the internal loop, for restart purpose */
         while (rho > epson && i < kmax)
@@ -141,7 +167,7 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
             /* get the next vector direct access */
             next_v = u[iplus1].v;
 
-            for (j = 0; j <= i; j++)
+            for (j = 0; j < iplus1; ++j)
             {
                 /* get the prev vector direct access */
                 prev_v = u[j].v;
@@ -159,35 +185,60 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
             tmp = EuclideanNorm(u[iplus1]);
 
             /* update the next h vector */
-            hv[i+1] = tmp;
+            hv[iplus1] = tmp;
 
-            /* normalize the direction vector */
-            ScaleVector(u[iplus1], 1.0/tmp);
+            if ((tmp + 1.0e-03*hv[iplus1]) == tmp)
+            {
+                for (j = 0; j < iplus1; ++j)
+                {
+                    tmp = InnerProduct(u[iplus1], u[iplus1]);
+                    hv[j] += tmp;
+                    for (k = 0; k < n; ++k)
+                    {
+                        next_v[k] -= tmp*prev_v[k];
+                    }
+                }
+            }
+
+            if (0.0 != hv[iplus1])
+            {
+                /* normalize the direction vector */
+                ScaleVector(u[iplus1], 1.0/hv[iplus1]);
+            }
 
             /* GRAM-SCHMIDT end */
 
             /* QR algorithm */
-            for (j = 0, jplus1 = 1; j < i; ++j, ++jplus1)
+            if (0 < i)
             {
-                hv[j] = c[j]*hv[j] + s[j]*hv[jplus1];
-                hv[jplus1] = -s[j]*hv[j] + c[j]*hv[jplus1];
+                for (j = 0, jplus1 = 1; j < i; ++j, ++jplus1)
+                {
+                    hv[j] = c[j]*hv[j] + s[j]*hv[jplus1];
+                    hv[jplus1] = -s[j]*hv[j] + c[j]*hv[jplus1];
+                }
+
             }
 
             /* update the residual value */
             r = sqrt(hv[i]*hv[i] + hv[iplus1]*hv[iplus1]);
 
+            /* update the cosine value */
             c[i] = hv[i]/r;
 
+            /* update the sin value */
             s[i] = hv[iplus1]/r;
 
+            /* update the current position inside the h vector */
             hv[i] = r;
 
+            /* update the next position inside the h vector */
             hv[iplus1] = 0.0;
 
+            /* rotate the error  */
             e[iplus1] = -s[i]*e[i];
-
             e[i] *= c[i];
 
+            /* update the rho value, the current error */
             rho = fabs(e[iplus1]);
 
             /* update the i counter */
@@ -198,7 +249,7 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
         iter_gmres = i - 1;
 
         /* update the y value */
-        y[iter_gmres] = e[iter_gmres]/h[iter_gmres].v[iter_gmres];
+        y[iter_gmres] = h[iter_gmres].v[iter_gmres];
 
         for (i = iter_gmres - 1; 0 <= i; --i)
         {
@@ -207,44 +258,38 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
 
             for (j = i + 1; j < iter_gmres + 1; ++j)
             {
-                e[i] -= hv[j] * y[j];
+                e[i] -= hv[j]*y[j];
             }
-
             y[i] = e[i]/hv[i];
+
         }
 
+        iter_gmres += 1;
         for (i = 0; i < n; ++i)
         {
-            /* get the current u vector */
-            uv = u[i].v;
-
-            for (j = 0; j < kmax + 1; ++j)
+            for (j = 0; j < iter_gmres; ++j)
             {
                 /* update the solution vector */
-                x0[i] += uv[j] * y[j];
+                x0[i] += u[j].v[i] * y[j];
             }
         }
-
-        /* reset the error */
-        for (i = 0; i < kmax1; ++i)
-        {
-            e[i] = 0.0;
-        }
-
-        /* reset the h matrix */
-        for (i = 0; i < kmax; ++i)
-        {
-            hv = h[i].v;
-            for (j = 0; j < kmax1; j++)
-            {
-                hv[j] = 0.0;
-            }
-        }
-
     }
 
     /* update the iteration counter*/
     sol.iterations = iter;
+
+    /* remove the auxiliary arrays */
+    free(c);
+    free(s);
+    free(y);
+    free(e);
+
+    /* remove the h and u vectors */
+    for (i = 0; i < kmax1; ++i)
+    {
+        DeleteVector(u[i]);
+        DeleteVector(h[i]);
+    }
 
     return sol;
 }

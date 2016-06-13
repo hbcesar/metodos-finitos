@@ -20,5 +20,12 @@ $(EXECUTABLE): $(OBJECTS)
 clean:
 	rm -f $(OBJECTS) $(EXECUTABLE)
 
+debug: CFLAGS += -DDEBUG -g
+debug: GCFLAGS += -DDEBUG -g
+debug: all
+
+$(DEBUG_EXECUTABLE): $(OBJECTS)
+	$(CC) $(OBJECTS) $(GCFLAGS) -o $@
+
 
 

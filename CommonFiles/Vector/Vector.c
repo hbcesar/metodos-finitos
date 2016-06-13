@@ -69,6 +69,37 @@ Vector BuildVectorWithValue(unsigned int s, double value) {
 
 }
 
+/* build a new vector with random values */
+Vector BuildVectorWithRandomValues(unsigned int s) {
+
+    /* build a vector */
+    Vector vector;
+
+    /* helper */
+    unsigned int i;
+
+    /* assign the size value */
+    vector.size = s;
+
+    /* alloc the vector */
+    vector.v = (double*) malloc(s*sizeof(double));
+    if (NULL == vector.v) {
+
+        printf("\nMemmory Error! Could not allocate the vector\n");
+        exit(-21);
+
+    }
+
+    for (i = 0; i < s; i++) {
+
+        vector.v[i] = rand() % 10;
+
+    }
+
+    /* return the vector */
+    return(vector);
+}
+
 /* delete a given vector */
 void DeleteVector(Vector vector) {
 
@@ -181,13 +212,20 @@ double EuclideanNorm(Vector vector) {
     /* the resulting norm */
     double norm = 0;
 
-    /* syntatic sugvectorr */
-    double *v = vector.v;
+    if (0 < v_size) {
 
-    for (i = 0; i < v_size; i++) {
+        /* syntatic sugvectorr */
+        double *v = vector.v;
 
-        norm += v[i]*v[i];
+        for (i = 0; i < v_size; i++) {
 
+            norm += v[i]*v[i];
+
+        }
+
+    } else {
+
+        return 0.0;
     }
 
     return sqrt(norm);

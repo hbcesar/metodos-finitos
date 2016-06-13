@@ -24,6 +24,9 @@ Vector BuildVector(unsigned int s);
 /* build a new vector with a given size and value */
 Vector BuildVectorWithValue(unsigned int s, double value);
 
+/* build a new vector with random values */
+Vector BuildVectorWithRandomValues(unsigned int s);
+
 /* delete a given vector */
 void DeleteVector(Vector vector);
 

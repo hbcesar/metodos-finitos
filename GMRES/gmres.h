@@ -14,6 +14,9 @@ typedef struct Solution {
 
 } Solution;
 
+/* destroy a solution struct */
+void delete_solution(Solution s);
+
 /* multiply a given CSR matrix to any Vector */
 void matrix_vector_multiply_CSR(MAT* A, Vector b, Vector result);
 
