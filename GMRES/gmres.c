@@ -199,22 +199,6 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
             /* normalize the direction vector */
             ScaleVector(u[iplus1], 1.0/tmp);
 
-//             if ((tmp + 1.0e-03*hv[iplus1]) == tmp)
-//             {
-//                 for (j = 0; j < iplus1; ++j)
-//                 {
-//                     tmp = InnerProduct(u[iplus1], u[i]);
-//                     hv[j] += tmp;
-//                     for (k = 0; k < n; ++k)
-//                     {
-//                         next_v[k] -= tmp*prev_v[k];
-//                     }
-//                 }
-//
-//                 /* update the h vector */
-//                 hv[iplus1] = EuclideanNorm(u[iplus1]);
-//             }
-
             /* GRAM-SCHMIDT end */
 
             /* QR algorithm */
