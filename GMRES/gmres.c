@@ -50,9 +50,13 @@ Vector rearrangeSolution(Vector b, int* p, unsigned int size){
     int i;
     Vector vB = BuildVectorWithValue(size, 1);
 
+    //acucar sintatico
+    double* b_linha = b.v;
+    double* b_original = vB.v;
+
     for (i = 0; i < size; i++)
     {
-        vB.v[i] = b.v[p[i]]; 
+        b_original[i] = b_linha[p[i]]; 
     }
 
     return vB;
