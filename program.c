@@ -38,6 +38,7 @@ int main (int argc, char* argv[])
     ShowVector(result);
     DeleteVector(x);
     DeleteVector(result);
+
     /*---------------------------------------------*/
     /*---------------GMRES SOLVER------------------*/
     printf("\nGMRES solver\n");
@@ -115,6 +116,14 @@ int main (int argc, char* argv[])
     *	Saída: Solução do Sistema Linear e o Número total de iterações realizadas pelo GMRES.
     *
     *************************************************************/
+    //Reordena e acha vetor b a partir de b'
+    Vector vB = BuildVectorWithValue(A->m, 1);
+
+    for (int i = 0; i < A->m; ++i)
+    {
+        vB.v[i] = b.v[p[i]]; 
+    }
+
 
     free(p);
     MATRIX_clean(A);

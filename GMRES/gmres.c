@@ -44,6 +44,21 @@ void matrix_vector_multiply_CSR(MAT* A, Vector b, Vector result)
     }
 
 }
+
+ //Reordena vetor b' para obter b
+Vector rearrangeSolution(Vector b, int* p, unsigned int size){
+    int i;
+    Vector vB = BuildVectorWithValue(size, 1);
+
+    for (i = 0; i < size; i++)
+    {
+        vB.v[i] = b.v[p[i]]; 
+    }
+
+    return vB;
+}
+
+
 /* the GMRES solver */
 Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned int lmax) {
 
