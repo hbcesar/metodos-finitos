@@ -27,73 +27,92 @@ int main (int argc, char* argv[])
     MAT *A = (MAT*) malloc (sizeof(MAT));
     MATRIX_readCSR (A,argv[1]);
 
-    /*---------------------------------------------*/
-    /*----MULTIPLICANDO A MATRIZ POR UM VETOR------*/
-    Vector x = BuildVectorWithValue(A->m, 1);
-    Vector result = BuildVector(A->m);
-    matrix_vector_multiply_CSR(A, x, result);
-    printf("\nThe x vector: ");
-    ShowVector(x);
-    printf("\nResult: ");
-    ShowVector(result);
-    DeleteVector(x);
-    DeleteVector(result);
-    /*---------------------------------------------*/
-    /*---------------GMRES SOLVER------------------*/
-    printf("\nGMRES solver\n");
-    Vector b = BuildVectorWithRandomValues(A->m, 10);
-    printf("\nThe b vector:");
-    ShowVector(b);
 
-    Solution sol;
-    sol = gmres_solver(A, b, 0.001, 5, 2000);
-    printf("\nThe x vector:");
-    ShowVector(sol.x);
-    printf("\nGMRES Iterations: %d\n", sol.iterations);
-
-    delete_solution(sol);
-    DeleteVector(b);
 
     /*---------------------------------------------*/
     /*---COMO USAR O ALGORITMO ILUP----------------*/
     /*---------------------------------------------*/
-    MAT *L = (MAT*) malloc(sizeof(MAT));						// Alocando matriz L
-    MAT *U = (MAT*) malloc(sizeof(MAT));						// Alocando matriz U
+    // Alocando matriz L
+    MAT *L = (MAT*) malloc(sizeof(MAT));
 
-    SparMAT* mat = (SparMAT*) malloc(sizeof(SparMAT));				// Alocando estruturas para o ILU(p)
+    // Alocando matriz U
+    MAT *U = (MAT*) malloc(sizeof(MAT));
+
+    // Alocando estruturas para o ILU(p)
+    SparMAT* mat = (SparMAT*) malloc(sizeof(SparMAT));
     SparILU* lu  = (SparILU*) malloc(sizeof(SparILU));
 
     printf("\n  [ CALCULANDO PRECONDICIONADOR ILU ]\n");
+
     /*---START TIME---------------> */ time = get_time();
-    CSRto_SPARMAT (A,mat);								// Convertendo CSR para estrutura especial
-    ILUP          (mat,lu,2);							// Algoritmo ILU(p)
-    SPARILU_toCSR (lu,L,U);								// Convertendo estrutura especial para CSR
-    /*---FINAL TIME---------------> */ time = (get_time() - time)/100.0;
+    // Convertendo CSR para estrutura especial
+    CSRto_SPARMAT(A,mat);
+
+    // Algoritmo ILU(p)
+    ILUP(mat,lu,2);
+
+    // Convertendo estrutura especial para CSR
+    SPARILU_toCSR(lu,L,U);
+
+    /*---FINAL TIME---------------> */
+    time = (get_time() - time)/100.0;
     printf("  - Tempo total              : %.6f sec\n", time);
 
-    SPARILU_clean (lu);								// Liberando memória da estrutura lu
-    SPARMAT_clean (mat);								// Liberando memória da estrutura mat
+    // Liberando memória da estrutura lu
+    SPARILU_clean(lu);
+
+    // Liberando memória da estrutura mat
+    SPARMAT_clean(mat);
 
     /* L contém a parte estritamente inferior de M / L->D contém a diagonal = 1.0 */
     /* U contém a parte estritamente superior de M / U->D contém a diagonal       */
-    MATRIX_printLU (A,L,U);
+    MATRIX_printLU(A,L,U);
+
+    /*---------------------------------------------*/
+    /*---------------GMRES SOLVER------------------*/
+    printf("\nGMRES solver\n");
+    /*----MULTIPLICANDO A MATRIZ POR UM VETOR------*/
+    Vector ones = BuildVectorWithValue(A->m, 1.0);
+    Vector b = BuildVector(A->m);
+    /* get the b values - see 4.2 - Leitura de Matrizes */
+    matrix_vector_multiply_CSR(A, ones, b);
+    printf("\nThe b vector:");
+    ShowVector(b);
+
+    Solution sol;
+    sol = gmres(A, L, U, b, 0.001, 30, 2000);
+    printf("\nThe x vector:");
+    ShowVector(sol.x);
+    printf("\nGMRES Iterations: %d\n", sol.iterations);
+    getchar();
+    delete_solution(sol);
+    DeleteVector(b);
+    DeleteVector(ones);
 
     /*---------------------------------------------*/
     /*---COMO USAR O REORDENAMENTO RCM-------------*/
     /*---------------------------------------------*/
-    int *p;									// Vetor de permutação
+
+    // Vetor de permutação
+    int *p;
     int  bandwidth;
 
-    bandwidth = (int) MATRIX_bandwidth(A);					// Calcula Largura de Banda da matriz original
+    // Calcula Largura de Banda da matriz original
+    bandwidth = (int) MATRIX_bandwidth(A);
+
     printf("\n  [ REORDENANDO com RCM ]\n");
     printf("  - Largura de Banda inicial : %d\n", bandwidth);
 
     /*---START TIME---------------> */ time = get_time();
-    REORDERING_RCM_opt(A,&p);						// Aplica o reordenamento RCM na matriz A
-    MATRIX_permutation(A,p); 						// Aplica a permutação em A para trocar linhas e colunas
+    // Aplica o reordenamento RCM na matriz A
+    REORDERING_RCM_opt(A,&p);
+
+    // Aplica a permutação em A para trocar linhas e colunas
+    MATRIX_permutation(A,p);
     /*---FINAL TIME---------------> */ time = (get_time() - time)/100.0;
 
-    bandwidth = (int) MATRIX_bandwidth(A);					// Calcula Largura de Banda da matriz reordenada
+    // Calcula Largura de Banda da matriz reordenada
+    bandwidth = (int) MATRIX_bandwidth(A);
     printf("  - Largura de Banda final   : %d\n", bandwidth);
     printf("  - Tempo total              : %.6f sec\n\n", time);
 

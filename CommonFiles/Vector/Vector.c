@@ -3,8 +3,8 @@
  *  emai: josiasalexandre@gmail.com
  *  copyleft =)
  */
-#include <malloc.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <math.h>
 
 #include "Vector.h"
@@ -264,7 +264,7 @@ double InfinityNorm(Vector vector) {
 }
 
 /* normalization */
-inline void ScaleVector(Vector vector, double value) {
+void ScaleVector(Vector vector, double value) {
 
     /* get the vector size */
     unsigned int v_size = vector.size, i;

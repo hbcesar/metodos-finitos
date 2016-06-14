@@ -49,7 +49,7 @@ double EuclideanNorm(Vector a);
 double InfinityNorm(Vector vector);
 
 /* normalization */
-inline void ScaleVector(Vector vector, double value);
+void ScaleVector(Vector vector, double value);
 
 /* show a vector */
 void ShowVector(Vector vector);

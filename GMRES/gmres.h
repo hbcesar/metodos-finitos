@@ -20,6 +20,9 @@ void delete_solution(Solution s);
 /* multiply a given CSR matrix to any Vector */
 void matrix_vector_multiply_CSR(MAT* A, Vector b, Vector result);
 
+/* solve LUx = b */
+void lu_solver(MAT *L, MAT *U, Vector b, Vector result);
+
 /* the GMRES solver */
 Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned int lmax);
 
