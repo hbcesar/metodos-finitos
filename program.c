@@ -28,6 +28,33 @@ int main (int argc, char* argv[])
     MATRIX_readCSR (A,argv[1]);
 
     /*---------------------------------------------*/
+    /*---COMO USAR O REORDENAMENTO RCM-------------*/
+    /*---------------------------------------------*/
+
+    // Vetor de permutação
+    int *p;
+    int  bandwidth;
+
+    // Calcula Largura de Banda da matriz original
+    bandwidth = (int) MATRIX_bandwidth(A);
+
+    printf("\n  [ REORDENANDO com RCM ]\n");
+    printf("  - Largura de Banda inicial : %d\n", bandwidth);
+
+    /*---START TIME---------------> */ time = get_time();
+    // Aplica o reordenamento RCM na matriz A
+    REORDERING_RCM_opt(A,&p);
+
+    // Aplica a permutação em A para trocar linhas e colunas
+    MATRIX_permutation(A,p);
+    /*---FINAL TIME---------------> */ time = (get_time() - time)/100.0;
+
+    // Calcula Largura de Banda da matriz reordenada
+    bandwidth = (int) MATRIX_bandwidth(A);
+    printf("  - Largura de Banda final   : %d\n", bandwidth);
+    printf("  - Tempo total              : %.6f sec\n\n", time);
+
+    /*---------------------------------------------*/
     /*---COMO USAR O ALGORITMO ILUP----------------*/
     /*---------------------------------------------*/
     // Alocando matriz L
@@ -69,77 +96,42 @@ int main (int argc, char* argv[])
     /*---------------------------------------------*/
     /*---------------GMRES SOLVER------------------*/
     printf("\nGMRES solver\n");
-    /*----MULTIPLICANDO A MATRIZ POR UM VETOR------*/
+//
+//     /* create a vector with all values equal to 1.0 */
     Vector ones = BuildVectorWithValue(A->m, 1.0);
+
+    /* the b independent vector */
     Vector b = BuildVector(A->m);
+
     /* get the b values - see 4.2 - Leitura de Matrizes */
     matrix_vector_multiply_CSR(A, ones, b);
-    printf("\n\nx vector: ");
-    ShowVector(ones);
-    getchar();
-    printf("\n\nb vector: ");
-    ShowVector(b);
-    getchar();
 
+    /* the solution must provide de x vector and how many iterations */
+    /* you can change the Solution struct definition in order to obtain more info from the solver'' */
     Solution sol;
-    //sol = gmres_solver(A, b, 1e-05, 20, 300);
-    sol = gmres_lu(A, L, U, b, 1e-05, 20, 300);
-    printf("\nThe x vector:");
-    ShowVector(sol.x);
-    printf("\nGMRES Iterations: %d\n", sol.iterations);
-    getchar();
+
+    // caso do gmres sem pré-condicionamento
+    //sol = gmres_solver(A, b, 1e-08, 20, 300);
+
+    // caso do gmres com pré-condicionamento
+    sol = gmres_lu(A, L, U, b, 10e-08, 20, 600);
+
+    // desfazer a permutação
+    Vector x = rearrange_solution(sol.x, p);
+
+    // printf("\nThe x vector:");
+    // ShowVector(x);
+    // printf("\nGMRES Iterations: %d\n", sol.iterations);
+
+    /* TODO
+     * Realizar todos os testes, com as variações definidas no trabalho
+     * Salvar as informações apropriadas em um arquivo, se possível já com sintaxe do octave
+     */
+
     delete_solution(sol);
     DeleteVector(b);
     DeleteVector(ones);
-
-    /*---------------------------------------------*/
-    /*---COMO USAR O REORDENAMENTO RCM-------------*/
-    /*---------------------------------------------*/
-
-    // Vetor de permutação
-    int *p;
-    int  bandwidth;
-
-    // Calcula Largura de Banda da matriz original
-    bandwidth = (int) MATRIX_bandwidth(A);
-
-    printf("\n  [ REORDENANDO com RCM ]\n");
-    printf("  - Largura de Banda inicial : %d\n", bandwidth);
-
-    /*---START TIME---------------> */ time = get_time();
-    // Aplica o reordenamento RCM na matriz A
-    REORDERING_RCM_opt(A,&p);
-
-    // Aplica a permutação em A para trocar linhas e colunas
-    MATRIX_permutation(A,p);
-    /*---FINAL TIME---------------> */ time = (get_time() - time)/100.0;
-
-    // Calcula Largura de Banda da matriz reordenada
-    bandwidth = (int) MATRIX_bandwidth(A);
-    printf("  - Largura de Banda final   : %d\n", bandwidth);
-    printf("  - Tempo total              : %.6f sec\n\n", time);
-
-
-    //JOSIAS, esse todo foi eu que fiz tá? Nao foi a profs nao.
-    /*********************** TODO *******************************
-    *
-    *
-    *	Função para solucionar o sistema linear
-    *
-    *	Entrada:
-    *		Matriz CSR: MAT *A
-    *		Matriz Precondicionamento: MAT *L e MAT *U
-    *		Vetor de Termos Independentes:
-    * 		Tolerância: double tol
-    *		Número máximo de vetores na base de Krylov:
-    *		Número máximo de Iteraçoes:
-    *		(caso o vetor de termos independentes não esteja permutado,  é necessário enviar também o vetor de permutações)
-    *
-    *
-    *	Saída: Solução do Sistema Linear e o Número total de iterações realizadas pelo GMRES.
-    *
-    *************************************************************/
-
+    DeleteVector(x);
 
     free(p);
     MATRIX_clean(A);

@@ -20,6 +20,9 @@ void delete_solution(Solution s);
 /* multiply a given CSR matrix to any Vector */
 void matrix_vector_multiply_CSR(MAT* A, Vector b, Vector result);
 
+/* undo the vector permutation */
+Vector rearrange_solution(Vector b, int* p);
+
 /* solve LUx = b */
 void lu_solver(MAT *L, MAT *U, Vector b, Vector result);
 

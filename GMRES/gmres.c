@@ -129,9 +129,10 @@ void lu_solver(MAT *L, MAT *U, Vector b, Vector result)
 }
 
 // Reordena vetor b' para obter b
-Vector rearrangeSolution(Vector b, int* p, unsigned int size)
+Vector rearrange_solution(Vector b, int* p)
 {
     int i;
+    unsigned int size = b.size;
     Vector vB = BuildVectorWithValue(size, 1);
 
     //acucar sintatico
@@ -147,7 +148,8 @@ Vector rearrangeSolution(Vector b, int* p, unsigned int size)
 }
 
 /* the GMRES solver */
-Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned int lmax) {
+Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned int lmax)
+{
 
     /* the common helpers */
     int i, iplus1, j, jplus1, k, kmax1, iter, iter_gmres;
@@ -261,7 +263,6 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
 
         /* reset the i counter */
         i = 0;
-        printf("\nIter: %d", iter);
 
         /* the internal loop, for restart purpose */
         while (rho > epson && i < kmax)
@@ -532,7 +533,6 @@ Solution gmres_lu(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kma
 
         /* reset the i counter */
         i = 0;
-        printf("\nIter: %d", iter);
 
         /* the internal loop, for restart purpose */
         while (rho > epson && i < kmax)
@@ -679,6 +679,9 @@ Solution gmres_lu(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kma
         DeleteVector(u[i]);
         DeleteVector(h[i]);
     }
+
+    /* remove the auxiliary vector */
+    DeleteVector(aux);
 
     return sol;
 }
