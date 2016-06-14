@@ -82,8 +82,8 @@ int main (int argc, char* argv[])
     getchar();
 
     Solution sol;
-    sol = gmres_solver(A, b, 1e-05, 20, 300);
-    //sol = gmres_lu(A, L, U, b, 1e-05, 20, 300);
+    //sol = gmres_solver(A, b, 1e-05, 20, 300);
+    sol = gmres_lu(A, L, U, b, 1e-05, 20, 300);
     printf("\nThe x vector:");
     ShowVector(sol.x);
     printf("\nGMRES Iterations: %d\n", sol.iterations);

@@ -288,7 +288,7 @@ void ShowVector(Vector vector) {
     printf("[ ");
     for (i = 0; i < vector.size; i++) {
 
-        printf("%6.10f ", vector.v[i]);
+        printf("%.3f ", vector.v[i]);
 
     }
     printf("]\n");
