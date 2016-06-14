@@ -99,8 +99,10 @@ int main (int argc, char* argv[])
     printf("  - Tempo total              : %.6f sec\n\n", time);
 
 
+    //JOSIAS, esse todo foi eu que fiz tá? Nao foi a profs nao.
     /*********************** TODO *******************************
     *
+    * 
     *	Função para solucionar o sistema linear
     *
     *	Entrada:
@@ -116,13 +118,6 @@ int main (int argc, char* argv[])
     *	Saída: Solução do Sistema Linear e o Número total de iterações realizadas pelo GMRES.
     *
     *************************************************************/
-    //Reordena e acha vetor b a partir de b'
-    Vector vB = BuildVectorWithValue(A->m, 1);
-
-    for (int i = 0; i < A->m; ++i)
-    {
-        vB.v[i] = b.v[p[i]]; 
-    }
 
 
     free(p);
