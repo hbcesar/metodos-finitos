@@ -43,12 +43,13 @@ void matrix_vector_multiply_CSR(MAT* A, Vector b, Vector result)
         }
     }
 
+    return;
 }
 
 /* solve LUx = b */
 void lu_solver(MAT *L, MAT *U, Vector b, Vector result)
 {
-    if (L->m != U->m || L->m != b.size || b.size != result.size)
+    if (L->n != U->n || L->n != b.size || b.size != result.size)
     {
         printf("\nWrong dimensions! The L/U matrix collumns and the vectors B and X dimension must all have the same size!\n");
         exit(-31);
@@ -101,7 +102,7 @@ void lu_solver(MAT *L, MAT *U, Vector b, Vector result)
     IA = U->IA;
 
     /* solve Ux = p */
-    for (i = 0; i < n; ++i)
+    for (i = n - 1; 0 <= i; --i)
     {
         /* copy the current value */
         rv[i] = pv[i];
@@ -120,6 +121,9 @@ void lu_solver(MAT *L, MAT *U, Vector b, Vector result)
         rv[i] /= D[i];
 
     }
+
+    /* remove the temp vector */
+    DeleteVector(p);
 
     return;
 }
@@ -257,6 +261,7 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
 
         /* reset the i counter */
         i = 0;
+        printf("\nIter: %d", iter);
 
         /* the internal loop, for restart purpose */
         while (rho > epson && i < kmax)
@@ -458,11 +463,11 @@ Solution gmres_lu(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kma
         h[i] = BuildVector(kmax1);
     }
 
-    /* build the residual vector */
-    Vector residual = BuildVector(n);
+    /* build the auxiliary vector */
+    Vector aux = BuildVector(n);
 
-    /* get the residual direct access */
-    double *rv = residual.v;
+    /* get the auxiliary vector direct access */
+    double *av = aux.v;
 
     /* the GMRES main outside loop */
     /* we are going to break this loop */
@@ -471,20 +476,19 @@ Solution gmres_lu(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kma
     {
         /* first let's find the residual/error vector */
         /* start */
-
-        matrix_vector_multiply_CSR(A, sol.x, residual);
+        matrix_vector_multiply_CSR(A, sol.x, aux);
 
         /* let's remember: r = b - Ax */
         /* we have r' = M'(b - Ax) */
         /* but we got now just the Ax, so ... */
         for (j = 0; j < n; ++j) {
             /* subtract = b - Ax */
-            rv[j] = bv[j] - rv[j];
+            av[j] = bv[j] - av[j];
         }
 
         /* solve Mr' = r */
         /* let's save the result in the first direction vector' */
-        lu_solver(L, U, residual, u[0]);
+        lu_solver(L, U, aux, u[0]);
 
         /* end */
 
@@ -528,6 +532,7 @@ Solution gmres_lu(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kma
 
         /* reset the i counter */
         i = 0;
+        printf("\nIter: %d", iter);
 
         /* the internal loop, for restart purpose */
         while (rho > epson && i < kmax)
@@ -536,7 +541,10 @@ Solution gmres_lu(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kma
             iplus1 = i+1;
 
             /* get the next direction vector */
-            matrix_vector_multiply_CSR(A, u[i], u[iplus1]);
+            matrix_vector_multiply_CSR(A, u[i], aux);
+
+            /* get the next direction vector */
+            lu_solver(L, U, aux, u[iplus1]);
 
             /* Gram-Schmidt process */
             /* GRAM-SCHMIDT begin */

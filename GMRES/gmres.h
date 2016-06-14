@@ -27,6 +27,6 @@ void lu_solver(MAT *L, MAT *U, Vector b, Vector result);
 Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned int lmax);
 
 /* the GMRES main function */
-Solution gmres(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kmax, unsigned int lmax);
+Solution gmres_lu(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kmax, unsigned int lmax);
 
 #endif

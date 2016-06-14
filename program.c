@@ -3,8 +3,8 @@
 #include <sys/time.h>
 
 #include "./CommonFiles/protos.h"
-#include "CommonFiles/Vector/Vector.h"
-#include "GMRES/gmres.h"
+#include "./CommonFiles/Vector/Vector.h"
+#include "./GMRES/gmres.h"
 
 double get_time ()
 {
@@ -64,7 +64,7 @@ int main (int argc, char* argv[])
 
     /* L contém a parte estritamente inferior de M / L->D contém a diagonal = 1.0 */
     /* U contém a parte estritamente superior de M / U->D contém a diagonal       */
-    MATRIX_printLU(A,L,U);
+    // MATRIX_printLU(A,L,U);
 
     /*---------------------------------------------*/
     /*---------------GMRES SOLVER------------------*/
@@ -74,11 +74,16 @@ int main (int argc, char* argv[])
     Vector b = BuildVector(A->m);
     /* get the b values - see 4.2 - Leitura de Matrizes */
     matrix_vector_multiply_CSR(A, ones, b);
-    printf("\nThe b vector:");
+    printf("\n\nx vector: ");
+    ShowVector(ones);
+    getchar();
+    printf("\n\nb vector: ");
     ShowVector(b);
+    getchar();
 
     Solution sol;
-    sol = gmres(A, L, U, b, 0.001, 30, 2000);
+    sol = gmres_solver(A, b, 1e-05, 20, 300);
+    //sol = gmres_lu(A, L, U, b, 1e-05, 20, 300);
     printf("\nThe x vector:");
     ShowVector(sol.x);
     printf("\nGMRES Iterations: %d\n", sol.iterations);
