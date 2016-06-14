@@ -27,8 +27,6 @@ int main (int argc, char* argv[])
     MAT *A = (MAT*) malloc (sizeof(MAT));
     MATRIX_readCSR (A,argv[1]);
 
-
-
     /*---------------------------------------------*/
     /*---COMO USAR O ALGORITMO ILUP----------------*/
     /*---------------------------------------------*/
@@ -117,7 +115,9 @@ int main (int argc, char* argv[])
     printf("  - Tempo total              : %.6f sec\n\n", time);
 
 
+    //JOSIAS, esse todo foi eu que fiz tá? Nao foi a profs nao.
     /*********************** TODO *******************************
+    *
     *
     *	Função para solucionar o sistema linear
     *
@@ -134,6 +134,7 @@ int main (int argc, char* argv[])
     *	Saída: Solução do Sistema Linear e o Número total de iterações realizadas pelo GMRES.
     *
     *************************************************************/
+
 
     free(p);
     MATRIX_clean(A);

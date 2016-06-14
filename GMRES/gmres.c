@@ -124,6 +124,24 @@ void lu_solver(MAT *L, MAT *U, Vector b, Vector result)
     return;
 }
 
+// Reordena vetor b' para obter b
+Vector rearrangeSolution(Vector b, int* p, unsigned int size)
+{
+    int i;
+    Vector vB = BuildVectorWithValue(size, 1);
+
+    //acucar sintatico
+    double* b_linha = b.v;
+    double* b_original = vB.v;
+
+    for (i = 0; i < size; i++)
+    {
+        b_original[i] = b_linha[p[i]];
+    }
+
+    return vB;
+}
+
 /* the GMRES solver */
 Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned int lmax) {
 
