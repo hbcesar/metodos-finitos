@@ -204,6 +204,10 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
     /* get the residual direct access */
     double *rv = u[0].v;
 
+    /* the vector with r0 informations, needed to plot the graphic */
+    Vector vRho = BuildVector(lmax);
+    double* r0_graph = vRho.v;
+
     /* the GMRES main outside loop */
     /* we are going to break this loop */
     /* if we get a tiny little error */
@@ -384,6 +388,8 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
 
         }
 
+        r0_graph[iter] = rho;
+
         if (rho < epson)
         {
             break;
@@ -393,6 +399,9 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
 
     /* update the iteration counter*/
     sol.iterations = iter + 1;
+
+    /* update the vector with r0 infos inside the solution struct */
+    sol.r0 = vRho;
 
     /* remove the auxiliary arrays */
     free(c);
@@ -469,6 +478,10 @@ Solution gmres_lu(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kma
 
     /* get the auxiliary vector direct access */
     double *av = aux.v;
+
+    /* the vector with r0 informations, needed to plot the graphic */
+    Vector vRho = BuildVector(lmax);
+    double* r0_graph = vRho.v;
 
     /* the GMRES main outside loop */
     /* we are going to break this loop */
@@ -657,6 +670,8 @@ Solution gmres_lu(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kma
 
         }
 
+        r0_graph[iter] = rho;
+
         if (rho < epson)
         {
             break;
@@ -666,6 +681,9 @@ Solution gmres_lu(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kma
 
     /* update the iteration counter*/
     sol.iterations = iter + 1;
+
+    /* update the vector with r0 infos inside the solution struct */
+    sol.r0 = vRho;
 
     /* remove the auxiliary arrays */
     free(c);

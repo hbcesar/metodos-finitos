@@ -1,10 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
+#include <math.h>
 
 #include "./CommonFiles/protos.h"
 #include "./CommonFiles/Vector/Vector.h"
 #include "./GMRES/gmres.h"
+
+#define true 1
+#define false 0
 
 double get_time ()
 {
@@ -12,24 +16,47 @@ double get_time ()
     return (double)(tv.tv_sec * 100.0 + tv.tv_usec / 10000.0);
 }
 
+void printSolution(Solution s, char* file){
 
-int main (int argc, char* argv[])
-{
-    double time;
+    // unsigned int iterations = s.iterations;
+    // double time = s.time;
+    double* sol = s.x.v;
+    double* r0 = s.r0.v;
 
-    if (argc != 2)
-    {
-        printf("\n Erro! Sem arquivo da matriz (.mtx)");
-        printf("\n Modo de usar: ./program <nome_da_matriz> Saindo... [main]\n\n");
-        return 0;
+    FILE* f;
+    f = fopen(file, "w");
+
+    if(f == NULL){
+        printf("Could not create the output file. Aborting.\n");
+        exit(1);
+    }
+    
+    int i=0;
+
+    for(i = 0; i < s.x.size; i++){
+        fprintf(f, "%.4lf;%.4lf\n", sol[i], log(fabs(r0[i])));
     }
 
+    fclose(f);
+}
+
+void printTime(Solution s){
+    printf("Iterations: %d\n", s.iterations);
+    printf("Time: %.4lf\n", s.time);
+}
+
+void solver(char* input, char* output, unsigned int condicionamento){
+    double time;
+    double total_time;
+
     MAT *A = (MAT*) malloc (sizeof(MAT));
-    MATRIX_readCSR (A,argv[1]);
+    MATRIX_readCSR (A, input);
 
     /*---------------------------------------------*/
     /*---COMO USAR O REORDENAMENTO RCM-------------*/
     /*---------------------------------------------*/
+    //Get the time before the algorithm begins
+    total_time = get_time();
 
     // Vetor de permutação
     int *p;
@@ -79,7 +106,7 @@ int main (int argc, char* argv[])
     // Convertendo estrutura especial para CSR
     SPARILU_toCSR(lu,L,U);
 
-    /*---FINAL TIME---------------> */
+    // <------FINAL TIME---------------> 
     time = (get_time() - time)/100.0;
     printf("  - Tempo total              : %.6f sec\n", time);
 
@@ -114,10 +141,23 @@ int main (int argc, char* argv[])
     //sol = gmres_solver(A, b, 1e-08, 20, 300);
 
     // caso do gmres com pré-condicionamento
-    sol = gmres_lu(A, L, U, b, 10e-08, 20, 600);
+    // sol = gmres_lu(A, L, U, b, 10e-08, 20, 600);
+
+    if(condicionamento){
+        printf("\nSolving with pre-conditioning\n");
+        sol = gmres_lu(A, L, U, b, 10e-08, 20, 600);
+    } else {
+        printf("\nSolving without pre-conditioning\n");
+        sol = gmres_solver(A, b, 1e-08, 20, 300);
+    }
 
     // desfazer a permutação
     Vector x = rearrange_solution(sol.x, p);
+
+    //Get total time at the end of the algorithm
+    total_time = (get_time() - total_time)/100.0;
+
+    sol.time = total_time;
 
     // printf("\nThe x vector:");
     // ShowVector(x);
@@ -127,6 +167,7 @@ int main (int argc, char* argv[])
      * Realizar todos os testes, com as variações definidas no trabalho
      * Salvar as informações apropriadas em um arquivo, se possível já com sintaxe do octave
      */
+    printSolution(sol, output);
 
     delete_solution(sol);
     DeleteVector(b);
@@ -137,6 +178,50 @@ int main (int argc, char* argv[])
     MATRIX_clean(A);
     MATRIX_clean(L);
     MATRIX_clean(U);
+}
+
+int main (int argc, char* argv[])
+{
+    // if (argc != 2)
+    // {
+    //     printf("\n Erro! Sem arquivo da matriz (.mtx)");
+    //     printf("\n Modo de usar: ./program <nome_da_matriz> Saindo... [main]\n\n");
+    //     return 0;
+    // }
+
+
+    /*********************
+    * Matriz: rail_5177.mtx
+    * Saida: rail_5177.csv
+    **********************/
+    solver("matrizes/rail_5177.mtx", "testes/rail_5177/rail_5177_cond.csv", true);
+    solver("matrizes/rail_5177.mtx", "testes/rail_5177/rail_5177.csv", false);
+
+
+    /*********************
+    * Matriz: aft01.mtx
+    * Saida: aft01.csv
+    **********************/
+    // solver("matrizes/aft01.mtx", "testes/aft01/aft01_cond.csv", true);
+    // solver("matrizes/aft01.mtx", "testes/aft01/aft01.csv", false);
+
+    /*********************
+    * Matriz: Dubcova2.mtx
+    * Saida: Dubcova2.csv
+    **********************/
+    // solver("matrizes/Dubcova2.mtx", "testes/Dubcova2/Dubcova2_cond.csv", true);
+    // solver("matrizes/Dubcova2.mtx", "testes/Dubcova2/Dubcova2.csv", false);
+
+    /*********************
+    * Matriz: FEM_3D_thermal1.mtx
+    * Saida: FEM_3D_thermal1.csv
+    **********************/
+    // solver("matrizes/FEM_3D_thermal1.mtx", "testes/FEM_3D_thermal1/FEM_3D_thermal1_cond.csv", true);
+    // solver("matrizes/FEM_3D_thermal1.mtx", "testes/FEM_3D_thermal1/FEM_3D_thermal1.csv", false);
+
+
 
     return 0;
 }
+
+

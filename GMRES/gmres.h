@@ -12,6 +12,13 @@ typedef struct Solution {
     /* how many iterations */
     unsigned int iterations;
 
+    /* spent time */
+    double time;
+
+    /* vector with r0 infos */
+    Vector r0;
+
+
 } Solution;
 
 /* destroy a solution struct */
