@@ -206,7 +206,10 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
 
     /* the vector with r0 informations, needed to plot the graphic */
     Vector vRho = BuildVector(lmax);
+    Vector vRho_tmp = BuildVector(kmax);
+    //direct access:
     double* r0_graph = vRho.v;
+    double* r0_tmp = vRho_tmp.v;
 
     /* the GMRES main outside loop */
     /* we are going to break this loop */
@@ -351,6 +354,7 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
             e[i] *= c[i];
 
             /* update the rho value, the current error */
+            r0_tmp[i] = rho;
             rho = fabs(e[iplus1]);
 
             /* update the i counter */
@@ -388,7 +392,8 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
 
         }
 
-        r0_graph[iter] = rho;
+        //update the r0 value which is needed to plot the graphic
+        r0_graph[iter] = EuclideanNorm(vRho_tmp);
 
         if (rho < epson)
         {
@@ -408,6 +413,7 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
     free(s);
     free(y);
     free(e);
+    DeleteVector(vRho_tmp);
 
     /* remove the h and u vectors */
     for (i = 0; i < kmax1; ++i)
@@ -481,7 +487,10 @@ Solution gmres_lu(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kma
 
     /* the vector with r0 informations, needed to plot the graphic */
     Vector vRho = BuildVector(lmax);
+    Vector vRho_tmp = BuildVector(kmax);
+    //direct access:
     double* r0_graph = vRho.v;
+    double* r0_tmp = vRho_tmp.v;
 
     /* the GMRES main outside loop */
     /* we are going to break this loop */
@@ -633,6 +642,7 @@ Solution gmres_lu(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kma
             e[i] *= c[i];
 
             /* update the rho value, the current error */
+            r0_tmp[i] = rho;
             rho = fabs(e[iplus1]);
 
             /* update the i counter */
@@ -670,7 +680,8 @@ Solution gmres_lu(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kma
 
         }
 
-        r0_graph[iter] = rho;
+        //update the r0 value which is needed to plot the graphic
+        r0_graph[iter] = EuclideanNorm(vRho_tmp);
 
         if (rho < epson)
         {
@@ -700,6 +711,7 @@ Solution gmres_lu(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kma
 
     /* remove the auxiliary vector */
     DeleteVector(aux);
+    DeleteVector(vRho_tmp);
 
     return sol;
 }

@@ -62,13 +62,13 @@ void solver(char* input, char* output, unsigned int condicionamento){
 
     // Vetor de permutação
     int *p;
-    // int  bandwidth;
+    int  bandwidth;
 
     // Calcula Largura de Banda da matriz original
-    // bandwidth = (int) MATRIX_bandwidth(A);
+    bandwidth = (int) MATRIX_bandwidth(A);
 
-    // printf("\n  [ REORDENANDO com RCM ]\n");
-    // printf("  - Largura de Banda inicial : %d\n", bandwidth);
+    printf("\n  [ REORDENANDO com RCM ]\n");
+    printf("  - Largura de Banda inicial : %d\n", bandwidth);
 
     /*---START TIME---------------> */ time = get_time();
     // Aplica o reordenamento RCM na matriz A
@@ -79,9 +79,9 @@ void solver(char* input, char* output, unsigned int condicionamento){
     /*---FINAL TIME---------------> */ time = (get_time() - time)/100.0;
 
     // Calcula Largura de Banda da matriz reordenada
-    // bandwidth = (int) MATRIX_bandwidth(A);
-    // printf("  - Largura de Banda final   : %d\n", bandwidth);
-    // printf("  - Tempo total              : %.6f sec\n\n", time);
+    bandwidth = (int) MATRIX_bandwidth(A);
+    printf("  - Largura de Banda final   : %d\n", bandwidth);
+    printf("  - Tempo total              : %.6f sec\n\n", time);
 
     /*---------------------------------------------*/
     /*---COMO USAR O ALGORITMO ILUP----------------*/
@@ -96,7 +96,7 @@ void solver(char* input, char* output, unsigned int condicionamento){
     SparMAT* mat = (SparMAT*) malloc(sizeof(SparMAT));
     SparILU* lu  = (SparILU*) malloc(sizeof(SparILU));
 
-    // printf("\n  [ CALCULANDO PRECONDICIONADOR ILU ]\n");
+    printf("\n  [ CALCULANDO PRECONDICIONADOR ILU ]\n");
 
     /*---START TIME---------------> */ time = get_time();
     // Convertendo CSR para estrutura especial
@@ -110,7 +110,7 @@ void solver(char* input, char* output, unsigned int condicionamento){
 
     // <------FINAL TIME--------------->
     time = (get_time() - time)/100.0;
-    // printf("  - Tempo total              : %.6f sec\n", time);
+    printf("  - Tempo total              : %.6f sec\n", time);
 
     // Liberando memória da estrutura lu
     SPARILU_clean(lu);
@@ -149,7 +149,6 @@ void solver(char* input, char* output, unsigned int condicionamento){
 
     // desfazer a permutação
     Vector x = rearrange_solution(sol.x, p);
-    sol.x = x; //update the soluction in the soluction struct
 
     //Get total time at the end of the algorithm
     total_time = (get_time() - total_time)/100.0;
@@ -208,7 +207,8 @@ int main (int argc, char* argv[])
     * Saida: FEM_3D_thermal1.csv
     **********************/
     solver("matrizes/FEM_3D_thermal1.mtx", "testes/FEM_3D_thermal1/FEM_3D_thermal1_cond.csv", true);
-    solver("matrizes/FEM_3D_thermal1.mtx", "testes/FEM_3D_thermal1/FEM_3D_thermal1.csv", false);
+    solver("mat
+    rizes/FEM_3D_thermal1.mtx", "testes/FEM_3D_thermal1/FEM_3D_thermal1.csv", false);
 
     printf("\n\nDone\n\n");
 
