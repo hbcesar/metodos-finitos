@@ -149,7 +149,10 @@ void solver(char* input, char* output, unsigned int condicionamento){
 
     // desfazer a permutação
     Vector x = rearrange_solution(sol.x, p);
-    sol.x = x; //update the soluction in the soluction struct
+    //befora updating the reordered solution, delete the previous array
+    DeleteVector(sol.x);
+    //update the soluction in the soluction struct with the reordered array
+    sol.x = x; 
 
     //Get total time at the end of the algorithm
     total_time = (get_time() - total_time)/100.0;
@@ -163,7 +166,6 @@ void solver(char* input, char* output, unsigned int condicionamento){
     delete_solution(sol);
     DeleteVector(b);
     DeleteVector(ones);
-    DeleteVector(x);
 
     free(p);
     MATRIX_clean(A);

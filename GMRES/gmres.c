@@ -8,6 +8,7 @@
 void delete_solution(Solution s)
 {
     DeleteVector(s.x);
+
 }
 
 //Multiplicacao Matriz x Vetor em CSR, onde MAT* a é a matriz CSR e Vector b é o vetor.
@@ -413,7 +414,7 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
     free(s);
     free(y);
     free(e);
-    DeleteVector(vRho_tmp);
+    // DeleteVector(vRho_tmp);
 
     /* remove the h and u vectors */
     for (i = 0; i < kmax1; ++i)
