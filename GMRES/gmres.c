@@ -4,10 +4,50 @@
 
 #include "../CommonFiles/heads.h"
 
+/* build the base case parameters */
+GMRES_ParametersPtr get_base_parameters()
+{
+    GMRES_ParametersPtr p = (GMRES_Parameters*) malloc(sizeof(GMRES_Parameters));
+
+    /* how many iterations */
+    p->lmax =  300;
+
+    /* how many vectors in Krylov space */
+    /* each element here is a different krylov set */
+    /* e.g kmax = [20, 50, 100] */
+    p->kmax[0] = 20;
+    p->kmax[1] = 50;
+    p->kmax[2] = 100;
+
+    /* the tolerance */
+    p->tol = 10e-08;
+
+    /* precondiotinig flag */
+    p->preconditioner = false;
+
+    /* fill-in values */
+    p->fill_in[0] = 0;
+    p->fill_in[1] = 2;
+    p->fill_in[2] = 10;
+
+    /* the current fill-in */
+    p->ilu = 0;
+
+    /* reordering flag */
+    /* [false, true] */
+    p->reordering = false;
+
+    return p;
+}
+
 /* destroy a solution struct */
 void delete_solution(Solution s)
 {
+    /* remove the solution vector */
     DeleteVector(s.x);
+
+    /* remove the rho history vector */
+    DeleteVector(s.rhos);
 }
 
 //Multiplicacao Matriz x Vetor em CSR, onde MAT* a é a matriz CSR e Vector b é o vetor.
@@ -164,8 +204,12 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
     /* access the vector b */
     double *bv = b.v;
 
-    /* get the epson value */
-    double epson = tol * EuclideanNorm(b);
+    /* get the initial epsilon value */
+    double epsilon = min(tol, tol * EuclideanNorm(b));
+    if (0 == epsilon)
+    {
+        epsilon = tol;
+    }
 
     /* the solution */
     Solution sol;
@@ -174,6 +218,10 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
     /* this vector will be constantly */
     /* updated until we find the solution */
     sol.x = BuildVector(n);
+    /* build the rho history vector */
+    sol.rhos = BuildVector(lmax);
+    //direct access:
+    double* rhov = sol.rhos.v;
 
     /* the direct access  */
     double *x0 = sol.x.v;
@@ -205,10 +253,8 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
     double *rv = u[0].v;
 
     /* the vector with r0 informations, needed to plot the graphic */
-    Vector vRho = BuildVector(lmax);
     Vector vRho_tmp = BuildVector(kmax);
-    //direct access:
-    double* r0_graph = vRho.v;
+    // direct access:
     double* r0_tmp = vRho_tmp.v;
 
     /* the GMRES main outside loop */
@@ -241,11 +287,12 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
         } else {
 
             /* we got a trivial solution */
-            i += +1;
             for (i = 0; i < n; i++)
             {
                 x0[i] = 0.0;
             }
+
+            iter += 1;
 
             break;
         }
@@ -272,7 +319,7 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
         i = 0;
 
         /* the internal loop, for restart purpose */
-        while (rho > epson && i < kmax)
+        while (rho > epsilon && i < kmax)
         {
             /* set the iplus value */
             iplus1 = i+1;
@@ -392,10 +439,20 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
 
         }
 
-        //update the r0 value which is needed to plot the graphic
-        r0_graph[iter] = EuclideanNorm(vRho_tmp);
+        iter_gmres -= 1;
 
-        if (rho < epson)
+        //update the r0 value which is needed to plot the graphic
+        rhov[iter] = 0.0;
+
+        for (j = 0; j < iter_gmres; ++j)
+        {
+            rhov[iter] += r0_tmp[j];
+        }
+
+        /* normalize, just the average */
+        rhov[iter] /= iter_gmres;
+
+        if (rho < epsilon)
         {
             break;
         }
@@ -405,10 +462,6 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
     /* update the iteration counter*/
     sol.iterations = iter + 1;
 
-    /* update the vector with r0 infos inside the solution struct */
-    sol.r0 = vRho;
-
-    /* remove the auxiliary arrays */
     free(c);
     free(s);
     free(y);
@@ -442,8 +495,13 @@ Solution gmres_lu(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kma
     /* access the vector b */
     double *bv = b.v;
 
-    /* get the epson value */
-    double epson = tol * EuclideanNorm(b);
+    /* get the epsilon value */
+    double epsilon = min(tol, tol * EuclideanNorm(b));
+
+    if (0 == epsilon)
+    {
+        epsilon = tol;
+    }
 
     /* the solution */
     Solution sol;
@@ -453,7 +511,19 @@ Solution gmres_lu(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kma
     /* updated until we find the solution */
     sol.x = BuildVector(n);
 
-    /* the direct access  */
+    /* build the rho history vector */
+    sol.rhos = BuildVector(lmax*kmax);
+
+    /* how many rhos */
+    unsigned int rho_qnt = 0.0;
+
+    /* reset the rhos vector index */
+    sol.rho_size = 0;
+
+    /* the direct access pointer */
+    double *rhov = sol.rhos.v;
+
+    /* the solution vector direct access  */
     double *x0 = sol.x.v;
 
     /* allocate the c and s array */
@@ -486,10 +556,8 @@ Solution gmres_lu(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kma
     double *av = aux.v;
 
     /* the vector with r0 informations, needed to plot the graphic */
-    Vector vRho = BuildVector(lmax);
     Vector vRho_tmp = BuildVector(kmax);
     //direct access:
-    double* r0_graph = vRho.v;
     double* r0_tmp = vRho_tmp.v;
 
     /* the GMRES main outside loop */
@@ -518,19 +586,20 @@ Solution gmres_lu(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kma
         /* we need the euclidean norm (i.e the scalar error value) */
         rho = EuclideanNorm(u[0]);
 
-        if (rho != 0.0) {
-
+        if (rho != 0.0)
+        {
             /* let's normalize the residual vector */
             ScaleVector(u[0], 1.0/rho);
-
-        } else {
-
+        }
+        else
+        {
             /* we got a trivial solution */
-            i += +1;
             for (i = 0; i < n; i++)
             {
                 x0[i] = 0.0;
             }
+
+            iter += 1;
 
             break;
         }
@@ -557,8 +626,12 @@ Solution gmres_lu(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kma
         i = 0;
 
         /* the internal loop, for restart purpose */
-        while (rho > epson && i < kmax)
+        while (rho > epsilon && i < kmax)
         {
+            /* save the current rho value to the history vector */
+            rhov[rho_qnt] = rho;
+            rho_qnt += 1;
+
             /* set the iplus value */
             iplus1 = i+1;
 
@@ -680,10 +753,21 @@ Solution gmres_lu(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kma
 
         }
 
-        //update the r0 value which is needed to plot the graphic
-        r0_graph[iter] = EuclideanNorm(vRho_tmp);
+        /* gambiarra mode on */
+        iter_gmres -= 1;
 
-        if (rho < epson)
+        //update the r0 value which is needed to plot the graphic
+        rhov[iter] = 0.0;
+
+        for (j = 0; j < iter_gmres; ++j)
+        {
+            rhov[iter] += r0_tmp[j];
+        }
+
+        /* normalize, just the average */
+        rhov[iter] /= iter_gmres;
+
+        if (rho < epsilon)
         {
             break;
         }
@@ -692,9 +776,6 @@ Solution gmres_lu(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kma
 
     /* update the iteration counter*/
     sol.iterations = iter + 1;
-
-    /* update the vector with r0 infos inside the solution struct */
-    sol.r0 = vRho;
 
     /* remove the auxiliary arrays */
     free(c);

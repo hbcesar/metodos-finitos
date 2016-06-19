@@ -1,10 +1,50 @@
 #ifndef GMRES_H
 #define GMRES_H
 
+#define true 1
+#define false 0
+
 #include "../CommonFiles/protos.h"
 #include "../CommonFiles/Vector/Vector.h"
 
-typedef struct Solution {
+typedef struct GMRES_Parameters
+{
+    /* how many iterations */
+    unsigned int lmax;
+
+    /* how many vectors in Krylov space */
+    /* each element here is a different krylov set */
+    /* e.g kmax = [20, 50, 100] */
+    unsigned int kmax[3];
+
+    /* how many krylov spaces */
+    unsigned int krilov_space_index;
+
+    /* the tolerance */
+    double tol;
+
+    /* precondiotinig flag */
+    /* precondiotioner = [false, true] */
+    int preconditioner;
+
+    /* fill-in values */
+    /* fill_in = [0, 2, 10] */
+    unsigned int fill_in[3];
+
+    /* the current fill_in */
+    unsigned int ilu;
+
+    /* reordering flag */
+    /* [false, true] */
+    int reordering;
+
+} GMRES_Parameters, *GMRES_ParametersPtr;
+
+/* build the base case parameters */
+GMRES_ParametersPtr get_base_parameters();
+
+typedef struct Solution
+{
 
     /* the output vector */
     Vector x;
@@ -15,9 +55,11 @@ typedef struct Solution {
     /* spent time */
     double time;
 
-    /* vector with r0 infos */
-    Vector r0;
+    /* vector with rho infos */
+    Vector rhos;
 
+    /* the rhos history vector size */
+    unsigned int rho_size;
 
 } Solution;
 

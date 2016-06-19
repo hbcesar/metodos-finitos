@@ -36,6 +36,9 @@ Vector CopyVector(Vector vector);
 /* Copy the vector A to the vector B */
 void CopyVectorAToB(Vector *a, Vector *b);
 
+/* swap two vectors */
+void SwapVectors(Vector a, Vector b);
+
 /* inner product */
 double InnerProduct(Vector a, Vector b);
 

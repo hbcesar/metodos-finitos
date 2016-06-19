@@ -149,6 +149,25 @@ void CopyVectorAToB(Vector *a, Vector *b) {
 
 }
 
+/* swap two vectors */
+void SwapVectors(Vector a, Vector b)
+{
+    double s;
+    double *v;
+
+    /* swap the sizes */
+    s = a.size;
+    a.size = b.size;
+    b.size = s;
+
+    /* swap the pointers */
+    v = a.v;
+    a.v = b.v;
+    b.v = v;
+
+    return;
+}
+
 /* inner product */
 double InnerProduct(Vector a, Vector b) {
 
@@ -288,7 +307,7 @@ void ShowVector(Vector vector) {
     printf("[ ");
     for (i = 0; i < vector.size; i++) {
 
-        printf("%.5f ", vector.v[i]);
+        printf("%.25f ", vector.v[i]);
 
     }
     printf("]\n");
