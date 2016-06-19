@@ -59,7 +59,7 @@ typedef struct Solution
     Vector rhos;
 
     /* the rhos history vector size */
-    unsigned int rho_size;
+    unsigned int rho_last_index;
 
 } Solution;
 

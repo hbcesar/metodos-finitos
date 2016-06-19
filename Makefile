@@ -1,6 +1,6 @@
 CC         = gcc
-CFLAGS     = -c -lm -Wall -o3
-GCFLAGS    =  -lm -Wall -o3
+CFLAGS     = -c -lm -Wall
+GCFLAGS    =  -lm -Wall
 SOURCES    = ./CommonFiles/matrix.c        \
 	     ./CommonFiles/linked_list.c   \
 	     ./CommonFiles/graph.c         \

@@ -218,10 +218,15 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
     /* this vector will be constantly */
     /* updated until we find the solution */
     sol.x = BuildVector(n);
+
     /* build the rho history vector */
-    sol.rhos = BuildVector(lmax);
+    sol.rhos = BuildVector(lmax*kmax);
+
     //direct access:
     double* rhov = sol.rhos.v;
+
+    /* reset th rho vector valid elements */
+    unsigned int rho_last_index = 0;
 
     /* the direct access  */
     double *x0 = sol.x.v;
@@ -251,11 +256,6 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
 
     /* get the residual direct access */
     double *rv = u[0].v;
-
-    /* the vector with r0 informations, needed to plot the graphic */
-    Vector vRho_tmp = BuildVector(kmax);
-    // direct access:
-    double* r0_tmp = vRho_tmp.v;
 
     /* the GMRES main outside loop */
     /* we are going to break this loop */
@@ -401,7 +401,12 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
             e[i] *= c[i];
 
             /* update the rho value, the current error */
-            r0_tmp[i] = rho;
+            rhov[rho_last_index] = rho;
+
+            /* update the last index */
+            rho_last_index += 1;
+
+            /* set the new rho value */
             rho = fabs(e[iplus1]);
 
             /* update the i counter */
@@ -439,19 +444,6 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
 
         }
 
-        iter_gmres -= 1;
-
-        //update the r0 value which is needed to plot the graphic
-        rhov[iter] = 0.0;
-
-        for (j = 0; j < iter_gmres; ++j)
-        {
-            rhov[iter] += r0_tmp[j];
-        }
-
-        /* normalize, just the average */
-        rhov[iter] /= iter_gmres;
-
         if (rho < epsilon)
         {
             break;
@@ -462,11 +454,14 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
     /* update the iteration counter*/
     sol.iterations = iter + 1;
 
+    /* get the rho last index */
+    sol.rho_last_index = rho_last_index + 1;
+
     free(c);
     free(s);
     free(y);
     free(e);
-    DeleteVector(vRho_tmp);
+    // DeleteVector(vRho_tmp);
 
     /* remove the h and u vectors */
     for (i = 0; i < kmax1; ++i)
@@ -514,14 +509,11 @@ Solution gmres_lu(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kma
     /* build the rho history vector */
     sol.rhos = BuildVector(lmax*kmax);
 
-    /* how many rhos */
-    unsigned int rho_qnt = 0.0;
-
-    /* reset the rhos vector index */
-    sol.rho_size = 0;
-
     /* the direct access pointer */
     double *rhov = sol.rhos.v;
+
+    /* tmp rho last index */
+    unsigned int rho_last_index = 0;
 
     /* the solution vector direct access  */
     double *x0 = sol.x.v;
@@ -628,12 +620,8 @@ Solution gmres_lu(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kma
         /* the internal loop, for restart purpose */
         while (rho > epsilon && i < kmax)
         {
-            /* save the current rho value to the history vector */
-            rhov[rho_qnt] = rho;
-            rho_qnt += 1;
-
             /* set the iplus value */
-            iplus1 = i+1;
+            iplus1 = i + 1;
 
             /* get the next direction vector */
             matrix_vector_multiply_CSR(A, u[i], aux);
@@ -714,8 +702,11 @@ Solution gmres_lu(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kma
             e[iplus1] = -s[i]*e[i];
             e[i] *= c[i];
 
-            /* update the rho value, the current error */
-            r0_tmp[i] = rho;
+            /* save the current rho value to the history vector */
+            rhov[rho_last_index] = rho;
+            rho_last_index += 1;
+
+            /* set the new rho value */
             rho = fabs(e[iplus1]);
 
             /* update the i counter */
@@ -753,20 +744,6 @@ Solution gmres_lu(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kma
 
         }
 
-        /* gambiarra mode on */
-        iter_gmres -= 1;
-
-        //update the r0 value which is needed to plot the graphic
-        rhov[iter] = 0.0;
-
-        for (j = 0; j < iter_gmres; ++j)
-        {
-            rhov[iter] += r0_tmp[j];
-        }
-
-        /* normalize, just the average */
-        rhov[iter] /= iter_gmres;
-
         if (rho < epsilon)
         {
             break;
@@ -776,6 +753,9 @@ Solution gmres_lu(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kma
 
     /* update the iteration counter*/
     sol.iterations = iter + 1;
+
+    /* set the rho vector last index */
+    sol.rho_last_index = rho_last_index + 1;
 
     /* remove the auxiliary arrays */
     free(c);

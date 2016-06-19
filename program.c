@@ -287,13 +287,21 @@ void solver(MAT *A, FILE *output, GMRES_ParametersPtr params)
 
     }
 
+    /* desfazer a permutação */
+    Vector x = rearrange_solution(sol.x, p);
 
-    //Get total time at the end of the algorithm
+    /* befora updating the reordered solution, delete the previous array */
+    DeleteVector(sol.x);
+
+    /* update the soluction in the soluction struct with the reordered array */
+    sol.x = x;
+
+    /* Get total time at the end of the algorithm */
     total_time = (get_time() - total_time)/100.0;
     sol.time = total_time;
 
     /* Print the processing time as well as the iterations number */
-    // printTime(input, sol);
+    /*  printTime(input, sol); */
 
     /* Print the solution in a file */
     printSolution(sol, output, params);
@@ -304,6 +312,8 @@ void solver(MAT *A, FILE *output, GMRES_ParametersPtr params)
     /* delete the allocated vectors */
     DeleteVector(b);
     DeleteVector(ones);
+    /* we don't need to delete the x vector anymore */
+    /* DeleteVector(x); */
 
     return;
 }
