@@ -86,7 +86,7 @@ void printSolution(Solution s, FILE *f, GMRES_ParametersPtr par){
 
         /* set the rho history vector */
         /* start */
-        for(i = 0; i < s.iterations; i++)
+        for(i = 0; i < s.rho_last_index; i++)
         {
             fprintf(f, " %.4lf", log(fabs(r0[i])));
         }
