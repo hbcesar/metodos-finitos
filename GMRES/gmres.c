@@ -321,8 +321,15 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
         /* the internal loop, for restart purpose */
         while (rho > epsilon && i < kmax)
         {
+
+            /* update the rho value, the current error */
+            rhov[rho_last_index] = rho;
+
+            /* update the last index */
+            rho_last_index += 1;
+
             /* set the iplus value */
-            iplus1 = i+1;
+            iplus1 = i + 1;
 
             /* get the next direction vector */
             matrix_vector_multiply_CSR(A, u[i], u[iplus1]);
@@ -399,12 +406,6 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
             /* rotate the error  */
             e[iplus1] = -s[i]*e[i];
             e[i] *= c[i];
-
-            /* update the rho value, the current error */
-            rhov[rho_last_index] = rho;
-
-            /* update the last index */
-            rho_last_index += 1;
 
             /* set the new rho value */
             rho = fabs(e[iplus1]);
@@ -547,11 +548,6 @@ Solution gmres_lu(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kma
     /* get the auxiliary vector direct access */
     double *av = aux.v;
 
-    /* the vector with r0 informations, needed to plot the graphic */
-    Vector vRho_tmp = BuildVector(kmax);
-    //direct access:
-    double* r0_tmp = vRho_tmp.v;
-
     /* the GMRES main outside loop */
     /* we are going to break this loop */
     /* if we get a tiny little error */
@@ -598,6 +594,7 @@ Solution gmres_lu(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kma
 
         /* update the rho value */
         e[0] = rho;
+
         /* reset the error */
         for (j = 1; j < kmax1; ++j)
         {
@@ -620,6 +617,10 @@ Solution gmres_lu(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kma
         /* the internal loop, for restart purpose */
         while (rho > epsilon && i < kmax)
         {
+            /* save the current rho value to the history vector */
+            rhov[rho_last_index] = rho;
+            rho_last_index += 1;
+
             /* set the iplus value */
             iplus1 = i + 1;
 
@@ -702,10 +703,6 @@ Solution gmres_lu(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kma
             e[iplus1] = -s[i]*e[i];
             e[i] *= c[i];
 
-            /* save the current rho value to the history vector */
-            rhov[rho_last_index] = rho;
-            rho_last_index += 1;
-
             /* set the new rho value */
             rho = fabs(e[iplus1]);
 
@@ -772,7 +769,6 @@ Solution gmres_lu(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kma
 
     /* remove the auxiliary vector */
     DeleteVector(aux);
-    DeleteVector(vRho_tmp);
 
     return sol;
 }

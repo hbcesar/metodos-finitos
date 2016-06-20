@@ -44,6 +44,12 @@ void close_test_file(FILE *f)
     fprintf(f, "plot(solx_0_0_0_20, solution_0_0_0_20);\n");
     fprintf(f, "end;\n");
 
+    /* TODO */
+    /*
+     * We need to place the right plot commands in the octave file
+     *
+     */
+
     fclose(f);
 }
 
@@ -148,6 +154,7 @@ void printTime(char* input, Solution s){
 
 void solver(MAT *A, FILE *output, GMRES_ParametersPtr params)
 {
+    /* some helpers */
     double time;
     double total_time;
 
@@ -271,6 +278,10 @@ void solver(MAT *A, FILE *output, GMRES_ParametersPtr params)
         sol = gmres_solver(A, b, params->tol, params->kmax[params->krilov_space_index], params->lmax);
     }
 
+    /* Get total time at the end of the algorithm */
+    total_time = (get_time() - total_time)/100.0;
+    sol.time = total_time;
+
     if (params->reordering)
     {
         // desfazer a permutação
@@ -279,26 +290,14 @@ void solver(MAT *A, FILE *output, GMRES_ParametersPtr params)
         /* copy the x vector back to the solution, just */
         SwapVectors(sol.x, x);
 
-        /* remove the x vector */
-        DeleteVector(x);
-
         /* remover o array de permutação */
         free(p);
 
+        /* remove the x vector */
+        DeleteVector(x);
+
     }
 
-    /* desfazer a permutação */
-    Vector x = rearrange_solution(sol.x, p);
-
-    /* befora updating the reordered solution, delete the previous array */
-    DeleteVector(sol.x);
-
-    /* update the soluction in the soluction struct with the reordered array */
-    sol.x = x;
-
-    /* Get total time at the end of the algorithm */
-    total_time = (get_time() - total_time)/100.0;
-    sol.time = total_time;
 
     /* Print the processing time as well as the iterations number */
     /*  printTime(input, sol); */
@@ -312,8 +311,6 @@ void solver(MAT *A, FILE *output, GMRES_ParametersPtr params)
     /* delete the allocated vectors */
     DeleteVector(b);
     DeleteVector(ones);
-    /* we don't need to delete the x vector anymore */
-    /* DeleteVector(x); */
 
     return;
 }
