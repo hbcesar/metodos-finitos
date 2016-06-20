@@ -145,10 +145,30 @@ void printSolution(Solution s, FILE *f, GMRES_ParametersPtr par){
     return;
 }
 
-void printTime(char* input, Solution s){
-    printf("  - File: %s\n", input);
-    printf("  - Iterações: %d\n", s.iterations);
-    printf("  - Tempo total: %.4lfs\n\n\n", s.time);
+void printTime(GMRES_ParametersPtr par, Solution s){
+  //Save the table with each matrix infos in a txt file
+  char str[80];
+  strcpy (str,"testes/");
+  strcat (str,par->name);
+  strcat (str,"_log.txt");
+  printf("salvando em: %s\n", str);
+
+  FILE *log = fopen( str, "a" );
+
+  unsigned int kmax = par->kmax[par->krilov_space_index];
+  unsigned int fill_in = par->fill_in[par->ilu];
+  int reordering = par->reordering;
+  int preconditioner = par->preconditioner;
+
+
+  fprintf(log, "Condicionamento: %d\n", preconditioner);
+  fprintf(log, "Reordenamento: %d\n", reordering);
+  fprintf(log, "ILU Fill in: %d\n", fill_in);
+  fprintf(log, "K: %d\n", kmax);
+  fprintf(log, "Iterações: %d\n", s.iterations);
+  fprintf(log, "Tempo total: %.4lfs\n\n\n", s.time);
+
+  fclose(log);
 }
 
 
@@ -264,18 +284,22 @@ void solver(MAT *A, FILE *output, GMRES_ParametersPtr params)
     /* build the raw solution vector */
     if(params->preconditioner)
     {
-        printf("  [ Solving with preconditioning ]\n");
+        printf("  [ Solving with preconditioning ] -");
         sol = gmres_lu(A, L, U, b, params->tol, params->kmax[params->krilov_space_index], params->lmax);
 
         /* remove the preconditioners MATs */
         MATRIX_clean(L);
         MATRIX_clean(U);
 
+        printf(" Done\n");
+
     }
     else
     {
-        printf("  [ Solving without preconditioning ]\n");
+        printf("  [ Solving without preconditioning ] -");
         sol = gmres_solver(A, b, params->tol, params->kmax[params->krilov_space_index], params->lmax);
+
+        printf(" Done\n");
     }
 
     /* Get total time at the end of the algorithm */
@@ -304,6 +328,7 @@ void solver(MAT *A, FILE *output, GMRES_ParametersPtr params)
 
     /* Print the solution in a file */
     printSolution(sol, output, params);
+    printTime(params, sol);
 
     /* remove the solution internal vectors */
     delete_solution(sol);
@@ -326,11 +351,8 @@ int main (int argc, char* argv[])
     char *aft01[3] = {"matrizes/aft01.mtx", "testes/aft01/aft01.m", "aft01" };
     char *fem3d[3] = {"matrizes/FEM_3D_thermal1.mtx", "testes/FEM_3D_thermal1/FEM_3D_thermal1.m", "FEM_3D_thermal1" };
 
-    /* TODO */
-    /* declare all the others */
 
     /* build the main matrix array */
-    /* TODO INCLUDE ALL PAIRS OF MATRIX FILENAME AND TEST FILENAME */
     char **matrices[4] = {dubcova, rail, aft01, fem3d};
 
     /*******************************************************/
@@ -338,6 +360,8 @@ int main (int argc, char* argv[])
     /*******************************************************/
     /* helpers */
     int i, j, k, l, m;
+
+
 
     /* iterate over the matrices array */
     /* TODO INSERT ALL MATRICES INSIDE THE char **matrices[] array */
@@ -349,6 +373,7 @@ int main (int argc, char* argv[])
         /* set the main function */
         fprintf(f, "function %s()\n", matrices[m][2]);
         printf("\nMatrix: %s\n", matrices[m][2]);
+        strcpy(params->name, matrices[m][2]);
 
         /* iterate over the parameters values */
         for (i = 0; i < 3; ++i)

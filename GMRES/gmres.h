@@ -38,6 +38,9 @@ typedef struct GMRES_Parameters
     /* [false, true] */
     int reordering;
 
+    /* the current solving matrix name */
+    char* name;
+
 } GMRES_Parameters, *GMRES_ParametersPtr;
 
 /* build the base case parameters */

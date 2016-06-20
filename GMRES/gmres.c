@@ -37,6 +37,8 @@ GMRES_ParametersPtr get_base_parameters()
     /* [false, true] */
     p->reordering = false;
 
+    p->name = (char*) malloc(50 * sizeof(char));
+
     return p;
 }
 
