@@ -151,7 +151,7 @@ void printTime(GMRES_ParametersPtr par, Solution s){
   strcpy (str,"testes/");
   strcat (str,par->name);
   strcat (str,"_log.txt");
-  printf("salvando em: %s\n", str);
+  // printf("salvando em: %s\n", str);
 
   FILE *log = fopen( str, "a" );
 
@@ -175,20 +175,22 @@ void printTime(GMRES_ParametersPtr par, Solution s){
 void solver(MAT *A, FILE *output, GMRES_ParametersPtr params)
 {
     /* some helpers */
-    double time;
-    double total_time;
+    double time = 0.0;
+    double total_time = 0.0;
 
     // Vetor de permutação
     int *p;
 
     printf("\n  [ GMRES Solver ] \n");
+    total_time = get_time();
+
     if (params->reordering)
     {
         /*---------------------------------------------*/
         /*---COMO USAR O REORDENAMENTO RCM-------------*/
         /*---------------------------------------------*/
         //Get the time before the algorithm begins
-        total_time = get_time();
+
 
         // int  bandwidth;
 
