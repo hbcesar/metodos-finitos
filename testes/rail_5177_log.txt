@@ -1,0 +1,144 @@
+Condicionamento: 0
+Reordenamento: 0
+ILU Fill in: 2
+K: 20
+Iterações: 301
+Tempo total: 3.9739s
+
+
+Condicionamento: 1
+Reordenamento: 0
+ILU Fill in: 0
+K: 20
+Iterações: 301
+Tempo total: 5.6375s
+
+
+Condicionamento: 1
+Reordenamento: 0
+ILU Fill in: 2
+K: 20
+Iterações: 301
+Tempo total: 7.6596s
+
+
+Condicionamento: 0
+Reordenamento: 1
+ILU Fill in: 2
+K: 20
+Iterações: 301
+Tempo total: 3.8861s
+
+
+Condicionamento: 1
+Reordenamento: 1
+ILU Fill in: 0
+K: 20
+Iterações: 301
+Tempo total: 5.4809s
+
+
+Condicionamento: 1
+Reordenamento: 1
+ILU Fill in: 2
+K: 20
+Iterações: 301
+Tempo total: 6.6659s
+
+
+Condicionamento: 0
+Reordenamento: 0
+ILU Fill in: 2
+K: 50
+Iterações: 301
+Tempo total: 19.2214s
+
+
+Condicionamento: 1
+Reordenamento: 0
+ILU Fill in: 0
+K: 50
+Iterações: 301
+Tempo total: 21.5122s
+
+
+Condicionamento: 1
+Reordenamento: 0
+ILU Fill in: 2
+K: 50
+Iterações: 295
+Tempo total: 27.0807s
+
+
+Condicionamento: 0
+Reordenamento: 1
+ILU Fill in: 2
+K: 50
+Iterações: 301
+Tempo total: 17.5882s
+
+
+Condicionamento: 1
+Reordenamento: 1
+ILU Fill in: 0
+K: 50
+Iterações: 301
+Tempo total: 21.5964s
+
+
+Condicionamento: 1
+Reordenamento: 1
+ILU Fill in: 2
+K: 50
+Iterações: 110
+Tempo total: 8.7524s
+
+
+Condicionamento: 0
+Reordenamento: 0
+ILU Fill in: 2
+K: 100
+Iterações: 301
+Tempo total: 63.7910s
+
+
+Condicionamento: 1
+Reordenamento: 0
+ILU Fill in: 0
+K: 100
+Iterações: 301
+Tempo total: 73.6228s
+
+
+Condicionamento: 1
+Reordenamento: 0
+ILU Fill in: 2
+K: 100
+Iterações: 2
+Tempo total: 0.5668s
+
+
+Condicionamento: 0
+Reordenamento: 1
+ILU Fill in: 2
+K: 100
+Iterações: 301
+Tempo total: 60.7958s
+
+
+Condicionamento: 1
+Reordenamento: 1
+ILU Fill in: 0
+K: 100
+Iterações: 73
+Tempo total: 16.4295s
+
+
+Condicionamento: 1
+Reordenamento: 1
+ILU Fill in: 2
+K: 100
+Iterações: 2
+Tempo total: 0.3346s
+
+

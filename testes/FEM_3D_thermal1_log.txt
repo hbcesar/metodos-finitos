@@ -1,0 +1,144 @@
+Condicionamento: 0
+Reordenamento: 0
+ILU Fill in: 2
+K: 20
+Iterações: 15
+Tempo total: 1.1057s
+
+
+Condicionamento: 1
+Reordenamento: 0
+ILU Fill in: 0
+K: 20
+Iterações: 1
+Tempo total: 0.2181s
+
+
+Condicionamento: 1
+Reordenamento: 0
+ILU Fill in: 2
+K: 20
+Iterações: 1
+Tempo total: 1.3693s
+
+
+Condicionamento: 0
+Reordenamento: 1
+ILU Fill in: 2
+K: 20
+Iterações: 15
+Tempo total: 1.3587s
+
+
+Condicionamento: 1
+Reordenamento: 1
+ILU Fill in: 0
+K: 20
+Iterações: 1
+Tempo total: 0.4587s
+
+
+Condicionamento: 1
+Reordenamento: 1
+ILU Fill in: 2
+K: 20
+Iterações: 1
+Tempo total: 1.3776s
+
+
+Condicionamento: 0
+Reordenamento: 0
+ILU Fill in: 2
+K: 50
+Iterações: 5
+Tempo total: 1.2076s
+
+
+Condicionamento: 1
+Reordenamento: 0
+ILU Fill in: 0
+K: 50
+Iterações: 1
+Tempo total: 0.1558s
+
+
+Condicionamento: 1
+Reordenamento: 0
+ILU Fill in: 2
+K: 50
+Iterações: 1
+Tempo total: 1.1404s
+
+
+Condicionamento: 0
+Reordenamento: 1
+ILU Fill in: 2
+K: 50
+Iterações: 5
+Tempo total: 1.4258s
+
+
+Condicionamento: 1
+Reordenamento: 1
+ILU Fill in: 0
+K: 50
+Iterações: 1
+Tempo total: 0.4215s
+
+
+Condicionamento: 1
+Reordenamento: 1
+ILU Fill in: 2
+K: 50
+Iterações: 1
+Tempo total: 1.2948s
+
+
+Condicionamento: 0
+Reordenamento: 0
+ILU Fill in: 2
+K: 100
+Iterações: 2
+Tempo total: 1.8198s
+
+
+Condicionamento: 1
+Reordenamento: 0
+ILU Fill in: 0
+K: 100
+Iterações: 1
+Tempo total: 0.1542s
+
+
+Condicionamento: 1
+Reordenamento: 0
+ILU Fill in: 2
+K: 100
+Iterações: 1
+Tempo total: 1.1518s
+
+
+Condicionamento: 0
+Reordenamento: 1
+ILU Fill in: 2
+K: 100
+Iterações: 2
+Tempo total: 1.9752s
+
+
+Condicionamento: 1
+Reordenamento: 1
+ILU Fill in: 0
+K: 100
+Iterações: 1
+Tempo total: 0.4434s
+
+
+Condicionamento: 1
+Reordenamento: 1
+ILU Fill in: 2
+K: 100
+Iterações: 1
+Tempo total: 1.3193s
+
+
