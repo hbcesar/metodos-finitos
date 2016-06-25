@@ -10,7 +10,7 @@ GMRES_ParametersPtr get_base_parameters()
     GMRES_ParametersPtr p = (GMRES_Parameters*) malloc(sizeof(GMRES_Parameters));
 
     /* how many iterations */
-    p->lmax =  300;
+    p->lmax =  500;
 
     /* how many vectors in Krylov space */
     /* each element here is a different krylov set */
@@ -28,7 +28,7 @@ GMRES_ParametersPtr get_base_parameters()
     /* fill-in values */
     p->fill_in[0] = 0;
     p->fill_in[1] = 2;
-    p->fill_in[2] = 10;
+    p->fill_in[2] = 4;
 
     /* the current fill-in */
     p->ilu = 0;
@@ -222,7 +222,7 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
     sol.x = BuildVector(n);
 
     /* build the rho history vector */
-    sol.rhos = BuildVector(lmax*kmax);
+    sol.rhos = BuildVector(lmax);
 
     //direct access:
     double* rhov = sol.rhos.v;
@@ -299,6 +299,12 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
             break;
         }
 
+        /* update the rho value, the current error */
+        rhov[rho_last_index] = rho;
+
+        /* update the last index */
+        rho_last_index += 1;
+
         /* update the rho value */
         e[0] = rho;
         /* reset the error */
@@ -323,13 +329,6 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
         /* the internal loop, for restart purpose */
         while (rho > epsilon && i < kmax)
         {
-
-            /* update the rho value, the current error */
-            rhov[rho_last_index] = rho;
-
-            /* update the last index */
-            rho_last_index += 1;
-
             /* set the iplus value */
             iplus1 = i + 1;
 
@@ -449,6 +448,12 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
 
         if (rho < epsilon)
         {
+            /* update the rho value, the current error */
+            rhov[rho_last_index] = rho;
+
+            /* update the last index */
+            rho_last_index += 1;
+
             break;
         }
 
@@ -458,7 +463,7 @@ Solution gmres_solver(MAT *A, Vector b, double tol, unsigned int kmax, unsigned 
     sol.iterations = iter + 1;
 
     /* get the rho last index */
-    sol.rho_last_index = rho_last_index + 1;
+    sol.rho_last_index = rho_last_index;
 
     free(c);
     free(s);
@@ -510,7 +515,7 @@ Solution gmres_lu(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kma
     sol.x = BuildVector(n);
 
     /* build the rho history vector */
-    sol.rhos = BuildVector(lmax*kmax);
+    sol.rhos = BuildVector(lmax);
 
     /* the direct access pointer */
     double *rhov = sol.rhos.v;
@@ -594,6 +599,12 @@ Solution gmres_lu(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kma
             break;
         }
 
+        /* update the rho value, the current error */
+        rhov[rho_last_index] = rho;
+
+        /* update the last index */
+        rho_last_index += 1;
+
         /* update the rho value */
         e[0] = rho;
 
@@ -619,10 +630,6 @@ Solution gmres_lu(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kma
         /* the internal loop, for restart purpose */
         while (rho > epsilon && i < kmax)
         {
-            /* save the current rho value to the history vector */
-            rhov[rho_last_index] = rho;
-            rho_last_index += 1;
-
             /* set the iplus value */
             iplus1 = i + 1;
 
@@ -745,6 +752,12 @@ Solution gmres_lu(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kma
 
         if (rho < epsilon)
         {
+            /* update the rho value, the current error */
+            rhov[rho_last_index] = rho;
+
+            /* update the last index */
+            rho_last_index += 1;
+
             break;
         }
 
@@ -754,7 +767,7 @@ Solution gmres_lu(MAT *A, MAT *L, MAT *U, Vector b, double tol, unsigned int kma
     sol.iterations = iter + 1;
 
     /* set the rho vector last index */
-    sol.rho_last_index = rho_last_index + 1;
+    sol.rho_last_index = rho_last_index;
 
     /* remove the auxiliary arrays */
     free(c);

@@ -38,17 +38,11 @@ FILE* open_test_file(char *file)
 void close_test_file(FILE *f)
 {
     /* set the plot commands */
-    fprintf(f, "plot(rhox_0_0_0_20, rhos_0_0_0_20, rhox_0_1_0_20, rhos_0_1_0_20, rhox_0_1_2_20, rhos_0_1_2_20);\n");
-    fprintf(f, "grid minor;\n");
-    fprintf(f, "figure;\n");
-    fprintf(f, "plot(solx_0_0_0_20, solution_0_0_0_20);\n");
+    // fprintf(f, "plot(rhox_0_0_0_20, rhos_0_0_0_20, rhox_0_1_0_20, rhos_0_1_0_20, rhox_0_1_2_20, rhos_0_1_2_20);\n");
+    fprintf(f, "    grid minor;\n");
+    // fprintf(f, "figure;\n");
+    // fprintf(f, "plot(solx_0_0_0_20, solution_0_0_0_20);\n");
     fprintf(f, "end;\n");
-
-    /* TODO */
-    /*
-     * We need to place the right plot commands in the octave file
-     *
-     */
 
     fclose(f);
 }
@@ -57,7 +51,7 @@ void printSolution(Solution s, FILE *f, GMRES_ParametersPtr par){
 
     // unsigned int iterations = s.iterations;
     // double time = s.time;
-    double* sol = s.x.v;
+    /* double* sol = s.x.v;*/
     double* r0 = s.rhos.v;
 
     int i = 0;
@@ -73,63 +67,78 @@ void printSolution(Solution s, FILE *f, GMRES_ParametersPtr par){
     /* start */
     if (preconditioner)
     {
-        fprintf(f, "iterations_%d_1_%d_%u = %u\n", reordering, fill_in, kmax, s.iterations);
+        fprintf(f, "    iterations_%d_1_%d_%u = %u\n", reordering, fill_in, kmax, s.iterations);
 
         /* save the current solution required time */
-        fprintf(f, "time_%d_1_%d_%u = %lf\n", reordering, fill_in, kmax, s.time);
-
-        /* save the current error x coordinate */
-        fprintf(f, "\nrhox_%d_1_%d_%u = 0:%d;\n", reordering, fill_in, kmax, s.iterations - 1);
+        fprintf(f, "    time_%d_1_%d_%u = %lf\n", reordering, fill_in, kmax, s.time);
 
         /* save the error history */
-        fprintf(f, "\nrhos_%d_1_%d_%u = [ ", reordering, fill_in, kmax);
+        fprintf(f, "    rhos_%d_1_%d_%u = [", reordering, fill_in, kmax);
 
         /* set the rho history vector */
         /* start */
         for(i = 0; i < s.rho_last_index; i++)
         {
             fprintf(f, " %.4lf", log(fabs(r0[i])));
+
+            if (i+1 % 64 == 0)
+            {
+                fprintf(f, " ...\n");
+            }
         }
 
         fprintf(f, " ];\n");
+
         /* end */
 
+        /* plot the current rho history vector */
+        /* fprintf(f, "    plot(0:%d, rhos_%d_1_%d_%u);\n\n", s.rhos.size - 1 ,reordering, fill_in, kmax); */
+
         /* save the current solution x coordinate range */
-        fprintf(f, "\nsolx_%d_1_%d_%u = 0:%d;\n", reordering, fill_in, kmax, s.x.size - 1);
+        /* fprintf(f, "\nsolx_%d_1_%d_%u = 0:%d;\n", reordering, fill_in, kmax, s.x.size - 1); */
 
         /* save the current solution vector */
-        fprintf(f, "\nsolution_%d_1_%d_%u = [ ", reordering, fill_in, kmax);
+        /* fprintf(f, "\nsolution_%d_1_%d_%u = [ ", reordering, fill_in, kmax); */
     }
     else
     {
         /* save t*he current solution statistics */
-        fprintf(f, "iterations_%d_0_%u = %u\n", reordering, kmax, s.iterations);
+        fprintf(f, "    iterations_%d_0_%u = %u\n", reordering, kmax, s.iterations);
 
         /* save the current solution required time */
-        fprintf(f, "time_%d_0_%u = %lf\n", reordering, kmax, s.time);
+        fprintf(f, "    time_%d_0_%u = %lf\n", reordering, kmax, s.time);
 
-        /* save the current error x coordinate */
-        fprintf(f, "\nrhox_%d_0_0_%u = 0:%d;\n", reordering, kmax, s.iterations - 1);
-
-        fprintf(f, "\nrhos_%d_0_0_%d = [ ", reordering, kmax);
+        /* save the error history */
+        fprintf(f, "    rhos_%d_0_0_%d = [", reordering, kmax);
 
         /* set the rho history vector */
         /* start */
         for(i = 0; i < s.rho_last_index; i++)
         {
             fprintf(f, " %.4lf", log(fabs(r0[i])));
+
+            if (i+1 % 64 == 0)
+            {
+                fprintf(f, " ...\n");
+            }
         }
 
         fprintf(f, " ];\n");
+
         /* end */
+        /* plot the current rho history vector */
+        /* fprintf(f, "    plot(0:%u, rhos_%d_0_0_%u);\n\n", s.rhos.size - 1, reordering, kmax); */
 
         /* save the current solution x coordinate range */
-        fprintf(f, "\nsolx_%d_0_0_%u = 0:%d;\n ", reordering, kmax, s.x.size - 1);
+        /* fprintf(f, "\nsolx_%d_0_0_%u = 0:%d;\n ", reordering, kmax, s.x.size - 1); */
 
         /* save the current solution vector */
-        fprintf(f, "\nsolution_%d_0_0_%u = [ ", reordering, kmax);
+        /* fprintf(f, "\nsolution_%d_0_0_%u = [ ", reordering, kmax);*/
     }
 
+    /* end */
+
+    /*
     for(i = 0; i < s.x.size; i++){
         fprintf(f, " %.4lf", sol[i]);
 
@@ -139,8 +148,7 @@ void printSolution(Solution s, FILE *f, GMRES_ParametersPtr par){
         }
     }
 
-    fprintf(f, " ];\n\n");
-    /* end */
+    */
 
     return;
 }
@@ -324,7 +332,6 @@ void solver(MAT *A, FILE *output, GMRES_ParametersPtr params)
 
     }
 
-
     /* Print the processing time as well as the iterations number */
     /*  printTime(input, sol); */
 
@@ -353,7 +360,6 @@ int main (int argc, char* argv[])
     char *aft01[3] = {"matrizes/aft01.mtx", "testes/aft01/aft01.m", "aft01" };
     char *fem3d[3] = {"matrizes/FEM_3D_thermal1.mtx", "testes/FEM_3D_thermal1/FEM_3D_thermal1.m", "FEM_3D_thermal1" };
 
-
     /* build the main matrix array */
     char **matrices[4] = {dubcova, rail, aft01, fem3d};
 
@@ -362,8 +368,6 @@ int main (int argc, char* argv[])
     /*******************************************************/
     /* helpers */
     int i, j, k, l, m;
-
-
 
     /* iterate over the matrices array */
     /* TODO INSERT ALL MATRICES INSIDE THE char **matrices[] array */
@@ -374,6 +378,7 @@ int main (int argc, char* argv[])
 
         /* set the main function */
         fprintf(f, "function %s()\n", matrices[m][2]);
+        fprintf(f, "    hold on;\n");
         printf("\nMatrix: %s\n", matrices[m][2]);
         strcpy(params->name, matrices[m][2]);
 
@@ -398,7 +403,7 @@ int main (int argc, char* argv[])
                     if (false != params->preconditioner)
                     {
                         /* iterate over the ilu fill in values */
-                        for (l = 0; l < 2; ++l)
+                        for (l = 0; l < 3; ++l)
                         {
                             /* set the fill in index*/
                             params->ilu = l;
